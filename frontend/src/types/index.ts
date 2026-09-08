@@ -1,4 +1,4 @@
-export type UserRole = "ADMIN" | "CAIXA" | "ESTOQUE";
+export type UserRole = "ADMIN" | "GERENTE" | "CAIXA" | "ESTOQUE";
 
 export interface Account {
   id: number;
@@ -13,9 +13,47 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  profile_name: string;
+  permissions: string[];
   active: boolean;
   created_at: string;
   account: Account;
+}
+
+export interface StaffUser {
+  id: number;
+  name: string;
+  email: string;
+  role: UserRole;
+  profile_name: string;
+  active: boolean;
+  created_at: string;
+}
+
+export interface Permission {
+  code: string;
+  name: string;
+  module: string;
+}
+
+export interface Profile {
+  id: number;
+  name: string;
+  code: UserRole;
+  active: boolean;
+  is_system: boolean;
+  permissions: Permission[];
+}
+
+export interface AuditLog {
+  id: number;
+  user_name?: string | null;
+  action: string;
+  entity_type: string;
+  entity_id?: string | null;
+  description: string;
+  changes?: Record<string, unknown> | null;
+  created_at: string;
 }
 
 export interface Category {
@@ -34,6 +72,7 @@ export interface Supplier {
   email?: string | null;
   address?: string | null;
   notes?: string | null;
+  active: boolean;
   created_at: string;
   products_count: number;
 }
@@ -41,6 +80,7 @@ export interface Supplier {
 export interface Product {
   id: number;
   name: string;
+  brand?: string | null;
   description?: string | null;
   sku: string;
   barcode?: string | null;

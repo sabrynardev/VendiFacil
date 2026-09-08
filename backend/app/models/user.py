@@ -9,6 +9,7 @@ from app.database.session import Base
 
 class UserRole(str, enum.Enum):
     ADMIN = "ADMIN"
+    GERENTE = "GERENTE"
     CAIXA = "CAIXA"
     ESTOQUE = "ESTOQUE"
 
@@ -18,6 +19,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), nullable=False, index=True)
+    profile_id: Mapped[int | None] = mapped_column(ForeignKey("profiles.id"), nullable=True, index=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     email: Mapped[str] = mapped_column(String(160), nullable=False, unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -26,3 +28,4 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     account = relationship("Account", back_populates="users")
+    profile = relationship("Profile", back_populates="users")

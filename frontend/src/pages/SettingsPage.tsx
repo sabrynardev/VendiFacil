@@ -21,6 +21,7 @@ export function SettingsPage() {
           <div className="rounded-2xl border border-stroke bg-brand/4 p-4">
             <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Administrador atual</p>
             <p className="mt-2 text-lg font-semibold text-brandDeeper">{user?.name}</p>
+            <p className="mt-1 text-xs text-slate-500">{user?.profile_name}</p>
           </div>
           <div className="rounded-2xl border border-stroke bg-brand/4 p-4">
             <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Status</p>
@@ -30,11 +31,11 @@ export function SettingsPage() {
       </Card>
 
       <Card>
-        <h2 className="text-lg font-semibold">Próximas evoluções</h2>
+        <h2 className="text-lg font-semibold">Segurança e operação</h2>
         <ul className="mt-4 space-y-3 text-sm text-slate-600">
-          <li>Múltiplos usuários por conta com permissões separadas.</li>
+          <li>Usuários separados por perfis e permissões.</li>
           <li>Parâmetros fiscais, caixas e preferências por cliente.</li>
-          <li>Onboarding guiado para primeiro cadastro de produtos e estoque.</li>
+          <li>Operações sensíveis registradas na auditoria.</li>
         </ul>
       </Card>
     </div>

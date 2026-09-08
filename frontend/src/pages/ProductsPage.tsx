@@ -77,7 +77,7 @@ export function ProductsPage() {
         ) : data.products.length === 0 ? (
           <EmptyState title="Nenhum produto cadastrado" description="Cadastre o primeiro item para começar a vender." />
         ) : (
-          <DataTable headers={["Nome", "SKU", "Categoria", "Custo", "Venda", "Margem", "Estoque", "Status", "Ações"]}>
+          <DataTable headers={["Nome", "Marca", "SKU", "Categoria", "Custo", "Venda", "Margem", "Estoque", "Status", "Ações"]}>
             {data.products.map((product) => (
               <tr key={product.id}>
                 <td className="px-4 py-3">
@@ -86,6 +86,7 @@ export function ProductsPage() {
                     <p className="text-xs text-slate-500">{product.barcode || "Sem código"}</p>
                   </div>
                 </td>
+                <td className="px-4 py-3 text-slate-600">{product.brand || "Sem marca"}</td>
                 <td className="px-4 py-3 text-slate-600">{product.sku}</td>
                 <td className="px-4 py-3 text-slate-600">{product.category_name || "Sem categoria"}</td>
                 <td className="px-4 py-3">{formatCurrency(product.cost_price)}</td>

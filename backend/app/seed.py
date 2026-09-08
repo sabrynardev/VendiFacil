@@ -13,6 +13,7 @@ from app.models.stock_movement import StockMovement, StockMovementType
 from app.models.supplier import Supplier
 from app.models.user import User, UserRole
 from app.services.accounts import ensure_default_categories
+from app.services.profiles import ensure_default_profiles
 
 
 def seed_database(db: Session):
@@ -25,10 +26,13 @@ def seed_database(db: Session):
         db.commit()
         db.refresh(demo_account)
 
+    profiles = ensure_default_profiles(db, demo_account.id)
+
     admin = db.query(User).filter(User.email == settings.seed_admin_email).first()
     if not admin:
         admin = User(
             account_id=demo_account.id,
+            profile_id=profiles[UserRole.ADMIN.value].id,
             name="Administrador",
             email=settings.seed_admin_email,
             password_hash=hash_password(settings.seed_admin_password),
@@ -41,6 +45,7 @@ def seed_database(db: Session):
     if not cashier:
         cashier = User(
             account_id=demo_account.id,
+            profile_id=profiles[UserRole.CAIXA.value].id,
             name="Sabrina",
             email="sabrina@marketpulse.dev",
             password_hash=hash_password("caixa123"),
@@ -48,6 +53,9 @@ def seed_database(db: Session):
             active=True,
         )
         db.add(cashier)
+
+    for user in db.query(User).filter(User.account_id == demo_account.id, User.profile_id.is_(None)).all():
+        user.profile_id = profiles[user.role.value].id
 
     db.commit()
     db.refresh(demo_account)

@@ -34,6 +34,10 @@ Essa página foi pensada para:
 - mostrar planos sugeridos de implantação e suporte
 - servir como base para anúncios, WhatsApp e reuniões presenciais
 
+## Evolução do produto
+
+A Fase 1 da evolução para produto comercial está documentada em [docs/phase-1-foundation.md](docs/phase-1-foundation.md), incluindo perfis, permissões, equipe, auditoria e migração do banco.
+
 ## Por que este projeto é forte para portfólio
 
 - Resolve um problema real de operação comercial, em vez de ser apenas um CRUD genérico

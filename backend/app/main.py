@@ -6,6 +6,7 @@ from app.core.config import get_settings
 from app.database.bootstrap import ensure_multitenant_schema
 from app.database.session import Base, SessionLocal, engine
 from app.seed import seed_database
+from app.services.profiles import backfill_account_profiles
 
 settings = get_settings()
 
@@ -24,6 +25,8 @@ app.add_middleware(
 def startup():
     Base.metadata.create_all(bind=engine)
     ensure_multitenant_schema(engine)
+    with SessionLocal() as db:
+        backfill_account_profiles(db)
     if settings.auto_seed:
         with SessionLocal() as db:
             seed_database(db)

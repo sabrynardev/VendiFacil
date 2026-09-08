@@ -8,6 +8,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 
 const CashierPage = lazy(() => import("./pages/CashierPage").then((module) => ({ default: module.CashierPage })));
+const AuditPage = lazy(() => import("./pages/AuditPage").then((module) => ({ default: module.AuditPage })));
 const DashboardPage = lazy(() => import("./pages/DashboardPage").then((module) => ({ default: module.DashboardPage })));
 const InventoryPage = lazy(() => import("./pages/InventoryPage").then((module) => ({ default: module.InventoryPage })));
 const MarketingPage = lazy(() => import("./pages/MarketingPage").then((module) => ({ default: module.MarketingPage })));
@@ -16,6 +17,7 @@ const ReportsPage = lazy(() => import("./pages/ReportsPage").then((module) => ({
 const SalesPage = lazy(() => import("./pages/SalesPage").then((module) => ({ default: module.SalesPage })));
 const SettingsPage = lazy(() => import("./pages/SettingsPage").then((module) => ({ default: module.SettingsPage })));
 const SuppliersPage = lazy(() => import("./pages/SuppliersPage").then((module) => ({ default: module.SuppliersPage })));
+const UsersPage = lazy(() => import("./pages/UsersPage").then((module) => ({ default: module.UsersPage })));
 
 function ScreenLoader() {
   return <div className="flex min-h-screen items-center justify-center text-slate-500">Carregando {brand.shortName}...</div>;
@@ -45,6 +47,17 @@ function PublicRoutes() {
   return <LoginPage />;
 }
 
+function HomeRoute() {
+  const { user } = useAuth();
+  if (user?.permissions.includes("dashboard.view")) return <DashboardPage />;
+  return <Navigate to="/cashier" replace />;
+}
+
+function PermissionRoute({ permission, children }: { permission: string; children: React.ReactNode }) {
+  const { user } = useAuth();
+  return user?.permissions.includes(permission) ? children : <Navigate to="/" replace />;
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -55,14 +68,16 @@ export default function App() {
             <Route path="/login" element={<PublicRoutes />} />
             <Route path="/registro" element={<RegisterPage />} />
             <Route path="/" element={<PrivateRoutes />}>
-              <Route index element={<DashboardPage />} />
-              <Route path="cashier" element={<CashierPage />} />
-              <Route path="products" element={<ProductsPage />} />
-              <Route path="inventory" element={<InventoryPage />} />
-              <Route path="sales" element={<SalesPage />} />
-              <Route path="suppliers" element={<SuppliersPage />} />
-              <Route path="reports" element={<ReportsPage />} />
-              <Route path="settings" element={<SettingsPage />} />
+              <Route index element={<HomeRoute />} />
+              <Route path="cashier" element={<PermissionRoute permission="cashier.operate"><CashierPage /></PermissionRoute>} />
+              <Route path="products" element={<PermissionRoute permission="products.view"><ProductsPage /></PermissionRoute>} />
+              <Route path="inventory" element={<PermissionRoute permission="inventory.view"><InventoryPage /></PermissionRoute>} />
+              <Route path="sales" element={<PermissionRoute permission="sales.view"><SalesPage /></PermissionRoute>} />
+              <Route path="suppliers" element={<PermissionRoute permission="suppliers.view"><SuppliersPage /></PermissionRoute>} />
+              <Route path="reports" element={<PermissionRoute permission="reports.view"><ReportsPage /></PermissionRoute>} />
+              <Route path="users" element={<PermissionRoute permission="users.manage"><UsersPage /></PermissionRoute>} />
+              <Route path="audit" element={<PermissionRoute permission="audit.view"><AuditPage /></PermissionRoute>} />
+              <Route path="settings" element={<PermissionRoute permission="settings.view"><SettingsPage /></PermissionRoute>} />
             </Route>
           </Routes>
         </Suspense>

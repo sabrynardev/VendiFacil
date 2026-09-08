@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, computed_field
 
 class ProductBase(BaseModel):
     name: str
+    brand: str | None = None
     description: str | None = None
     sku: str
     barcode: str | None = None

@@ -11,6 +11,7 @@ class SupplierBase(BaseModel):
     email: EmailStr | None = None
     address: str | None = None
     notes: str | None = None
+    active: bool = True
 
 
 class SupplierCreate(SupplierBase):

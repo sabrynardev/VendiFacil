@@ -12,6 +12,7 @@ class Product(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(160), nullable=False)
+    brand: Mapped[str | None] = mapped_column(String(100), nullable=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     sku: Mapped[str] = mapped_column(String(60), nullable=False, index=True)
     barcode: Mapped[str | None] = mapped_column(String(60), nullable=True, index=True)

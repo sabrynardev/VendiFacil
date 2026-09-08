@@ -12,6 +12,7 @@ interface Props {
 
 type ProductFormState = {
   name: string;
+  brand: string;
   description: string;
   sku: string;
   barcode: string;
@@ -27,6 +28,7 @@ type ProductFormState = {
 
 const defaultState: ProductFormState = {
   name: "",
+  brand: "",
   description: "",
   sku: "",
   barcode: "",
@@ -48,6 +50,7 @@ export function ProductForm({ categories, suppliers, initialValue, onSubmit, onC
     if (initialValue) {
       setForm({
         name: initialValue.name,
+        brand: initialValue.brand ?? "",
         description: initialValue.description ?? "",
         sku: initialValue.sku,
         barcode: initialValue.barcode ?? "",
@@ -87,9 +90,9 @@ export function ProductForm({ categories, suppliers, initialValue, onSubmit, onC
     <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
       {[
         { name: "name", label: "Nome" },
+        { name: "brand", label: "Marca" },
         { name: "sku", label: "SKU" },
         { name: "barcode", label: "Código de barras" },
-        { name: "unit", label: "Unidade" },
       ].map((field) => (
         <label key={field.name} className="space-y-2 text-sm">
           <span className="text-slate-600">{field.label}</span>
@@ -101,6 +104,23 @@ export function ProductForm({ categories, suppliers, initialValue, onSubmit, onC
           />
         </label>
       ))}
+
+      <label className="space-y-2 text-sm">
+        <span className="text-slate-600">Unidade de medida</span>
+        <select
+          className="w-full rounded-xl border-stroke bg-white text-brandDeeper"
+          value={form.unit}
+          onChange={(event) => setForm((current) => ({ ...current, unit: event.target.value }))}
+        >
+          <option value="unidade">Unidade</option>
+          <option value="kg">Quilograma (kg)</option>
+          <option value="g">Grama (g)</option>
+          <option value="litro">Litro</option>
+          <option value="ml">Mililitro (ml)</option>
+          <option value="caixa">Caixa</option>
+          <option value="pacote">Pacote</option>
+        </select>
+      </label>
 
       <label className="space-y-2 text-sm md:col-span-2">
         <span className="text-slate-600">Descrição</span>
@@ -167,6 +187,15 @@ export function ProductForm({ categories, suppliers, initialValue, onSubmit, onC
         <p>Margem: <span className="font-semibold text-brandStrong">{margin.toFixed(2)}</span></p>
         <p className="mt-1">Percentual: <span className="font-semibold text-brand">{marginPercent.toFixed(2)}%</span></p>
       </div>
+
+      <label className="flex items-center gap-3 rounded-2xl border border-stroke bg-brand/4 px-4 py-3 text-sm text-slate-600 md:col-span-2">
+        <input
+          type="checkbox"
+          checked={form.active}
+          onChange={(event) => setForm((current) => ({ ...current, active: event.target.checked }))}
+        />
+        Produto ativo para vendas e movimentações
+      </label>
 
       <div className="flex items-center justify-end gap-3 md:col-span-2">
         <Button type="button" variant="ghost" onClick={onCancel}>

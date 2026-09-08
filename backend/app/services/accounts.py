@@ -4,6 +4,7 @@ from app.auth.security import hash_password
 from app.models.account import Account
 from app.models.category import Category
 from app.models.user import User, UserRole
+from app.services.profiles import ensure_default_profiles
 
 DEFAULT_ACCOUNT_CATEGORIES = [
     "Bebidas",
@@ -47,8 +48,11 @@ def create_account_with_admin(
     db.add(account)
     db.flush()
 
+    profiles = ensure_default_profiles(db, account.id)
+
     admin = User(
         account_id=account.id,
+        profile_id=profiles[UserRole.ADMIN.value].id,
         name=admin_name,
         email=admin_email,
         password_hash=hash_password(password),

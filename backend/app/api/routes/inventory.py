@@ -1,24 +1,29 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.auth.dependencies import get_current_user, require_roles
+from app.auth.dependencies import require_permission
+from app.core.permissions import PermissionCode
 from app.database.session import get_db
 from app.models.product import Product
 from app.models.stock_movement import StockMovement
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.schemas.inventory import (
     InventoryRecord,
     StockAlert,
     StockMovementCreate,
     StockMovementResponse,
 )
+from app.services.audit import log_audit
 from app.services.inventory import inventory_projection, product_status
 
 router = APIRouter()
 
 
 @router.get("", response_model=list[InventoryRecord])
-def list_inventory(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def list_inventory(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(PermissionCode.INVENTORY_VIEW)),
+):
     records = []
     for product in (
         db.query(Product)
@@ -45,7 +50,10 @@ def list_inventory(db: Session = Depends(get_db), current_user: User = Depends(g
 
 
 @router.get("/alerts", response_model=list[StockAlert])
-def alerts(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def alerts(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(PermissionCode.INVENTORY_VIEW)),
+):
     data = []
     for product in db.query(Product).filter(Product.account_id == current_user.account_id, Product.active.is_(True)).all():
         status_label = product_status(float(product.stock_quantity), float(product.minimum_stock))
@@ -63,7 +71,10 @@ def alerts(db: Session = Depends(get_db), current_user: User = Depends(get_curre
 
 
 @router.get("/predictions", response_model=list[InventoryRecord])
-def predictions(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def predictions(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(PermissionCode.INVENTORY_VIEW)),
+):
     return list_inventory(db, current_user)
 
 
@@ -71,7 +82,7 @@ def predictions(db: Session = Depends(get_db), current_user: User = Depends(get_
 def create_movement(
     payload: StockMovementCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.ESTOQUE)),
+    current_user: User = Depends(require_permission(PermissionCode.INVENTORY_MANAGE)),
 ):
     product = (
         db.query(Product)
@@ -103,6 +114,15 @@ def create_movement(
         reason=payload.reason,
     )
     db.add(movement)
+    log_audit(
+        db,
+        current_user,
+        action="STOCK_MOVEMENT",
+        entity_type="PRODUCT",
+        entity_id=product.id,
+        description=f"Registrou {payload.type} de {delta:g} em {product.name}.",
+        changes={"before": previous_stock, "after": new_stock, "reason": payload.reason},
+    )
     db.commit()
     db.refresh(movement)
     return StockMovementResponse(
@@ -119,7 +139,10 @@ def create_movement(
 
 
 @router.get("/movements", response_model=list[StockMovementResponse])
-def list_movements(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def list_movements(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(PermissionCode.INVENTORY_VIEW)),
+):
     movements = (
         db.query(StockMovement)
         .filter(StockMovement.account_id == current_user.account_id)

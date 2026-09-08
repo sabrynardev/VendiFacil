@@ -47,6 +47,14 @@ def ensure_multitenant_schema(engine: Engine) -> None:
                 connection.execute(text(f"ALTER TABLE {table_name} ADD COLUMN account_id INTEGER"))
 
         inspector = inspect(connection)
+        if "users" in inspector.get_table_names() and not _has_column(inspector, "users", "profile_id"):
+            connection.execute(text("ALTER TABLE users ADD COLUMN profile_id INTEGER"))
+        if "products" in inspector.get_table_names() and not _has_column(inspector, "products", "brand"):
+            connection.execute(text("ALTER TABLE products ADD COLUMN brand VARCHAR(100)"))
+        if "suppliers" in inspector.get_table_names() and not _has_column(inspector, "suppliers", "active"):
+            connection.execute(text("ALTER TABLE suppliers ADD COLUMN active BOOLEAN NOT NULL DEFAULT 1"))
+
+        inspector = inspect(connection)
 
         if "categories" in inspector.get_table_names() and not _has_column(inspector, "categories", "account_id"):
             connection.execute(text("PRAGMA foreign_keys=OFF"))
@@ -92,6 +100,7 @@ def ensure_multitenant_schema(engine: Engine) -> None:
                         id INTEGER PRIMARY KEY,
                         account_id INTEGER NOT NULL,
                         name VARCHAR(160) NOT NULL,
+                        brand VARCHAR(100),
                         description TEXT,
                         sku VARCHAR(60) NOT NULL,
                         barcode VARCHAR(60),
@@ -116,11 +125,11 @@ def ensure_multitenant_schema(engine: Engine) -> None:
                 text(
                     """
                     INSERT INTO products_new (
-                        id, account_id, name, description, sku, barcode, category_id, supplier_id,
+                        id, account_id, name, brand, description, sku, barcode, category_id, supplier_id,
                         cost_price, sale_price, stock_quantity, minimum_stock, unit, active, created_at, updated_at
                     )
                     SELECT
-                        id, :account_id, name, description, sku, barcode, category_id, supplier_id,
+                        id, :account_id, name, brand, description, sku, barcode, category_id, supplier_id,
                         cost_price, sale_price, stock_quantity, minimum_stock, unit, active, created_at, updated_at
                     FROM products
                     """
@@ -176,3 +185,7 @@ def ensure_multitenant_schema(engine: Engine) -> None:
             connection.execute(text("CREATE INDEX IF NOT EXISTS ix_stock_movements_account_id ON stock_movements (account_id)"))
         if "users" in inspector.get_table_names():
             connection.execute(text("CREATE INDEX IF NOT EXISTS ix_users_account_id ON users (account_id)"))
+            connection.execute(text("CREATE INDEX IF NOT EXISTS ix_users_profile_id ON users (profile_id)"))
+        if "profiles" in inspector.get_table_names():
+            connection.execute(text("CREATE INDEX IF NOT EXISTS ix_profiles_account_id ON profiles (account_id)"))
+            connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_profiles_account_code ON profiles (account_id, code)"))

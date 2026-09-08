@@ -14,7 +14,7 @@ export function useAsync<T>(loader: () => Promise<T>, deps: DependencyList = [])
         if (active) setData(result);
       })
       .catch((err) => {
-        if (active) setError(err?.response?.data?.detail ?? "Não foi possível carregar os dados.");
+        if (active) setError(err instanceof Error ? err.message : "Não foi possível carregar os dados.");
       })
       .finally(() => {
         if (active) setLoading(false);

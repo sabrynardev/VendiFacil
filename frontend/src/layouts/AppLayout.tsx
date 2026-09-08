@@ -1,30 +1,31 @@
-import { BarChart3, Boxes, Cog, LayoutDashboard, LogOut, Menu, PackageSearch, ReceiptText, ShoppingCart, Truck } from "lucide-react";
+import { BarChart3, Boxes, ClipboardList, Cog, LayoutDashboard, LogOut, Menu, PackageSearch, ReceiptText, ShoppingCart, Truck, Users } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { brand } from "../config/brand";
 import { useAuth } from "../contexts/AuthContext";
 
 const links = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/cashier", label: "Caixa", icon: ShoppingCart },
-  { to: "/products", label: "Produtos", icon: PackageSearch },
-  { to: "/inventory", label: "Estoque", icon: Boxes },
-  { to: "/sales", label: "Vendas", icon: ReceiptText },
-  { to: "/suppliers", label: "Fornecedores", icon: Truck },
-  { to: "/reports", label: "Relatórios", icon: BarChart3 },
-  { to: "/settings", label: "Configurações", icon: Cog },
+  { to: "/", label: "Dashboard", icon: LayoutDashboard, permission: "dashboard.view" },
+  { to: "/cashier", label: "Caixa", icon: ShoppingCart, permission: "cashier.operate" },
+  { to: "/products", label: "Produtos", icon: PackageSearch, permission: "products.view" },
+  { to: "/inventory", label: "Estoque", icon: Boxes, permission: "inventory.view" },
+  { to: "/sales", label: "Vendas", icon: ReceiptText, permission: "sales.view" },
+  { to: "/suppliers", label: "Fornecedores", icon: Truck, permission: "suppliers.view" },
+  { to: "/reports", label: "Relatórios", icon: BarChart3, permission: "reports.view" },
+  { to: "/users", label: "Equipe", icon: Users, permission: "users.manage" },
+  { to: "/audit", label: "Auditoria", icon: ClipboardList, permission: "audit.view" },
+  { to: "/settings", label: "Configurações", icon: Cog, permission: "settings.view" },
 ];
 
 export function AppLayout() {
   const { user, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const roleLabel =
-    user?.role === "ADMIN" ? "Administrador" : user?.role === "CAIXA" ? "Operação de caixa" : "Gestão de estoque";
+  const roleLabel = user?.profile_name ?? "Usuário";
 
   const navigation = (
     <nav className="mt-8 space-y-2">
-      {links.map((link) => {
+      {links.filter((link) => user?.permissions.includes(link.permission)).map((link) => {
         const Icon = link.icon;
         return (
           <NavLink

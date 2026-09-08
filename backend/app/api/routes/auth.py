@@ -6,6 +6,7 @@ from app.auth.security import create_access_token, verify_password
 from app.database.session import get_db
 from app.models.user import User
 from app.schemas.auth import CurrentUserResponse, LoginRequest, TokenResponse
+from app.services.profiles import permission_codes_for_user
 
 router = APIRouter()
 
@@ -21,4 +22,15 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=CurrentUserResponse)
 def me(current_user: User = Depends(get_current_user)):
-    return current_user
+    return CurrentUserResponse(
+        id=current_user.id,
+        account_id=current_user.account_id,
+        name=current_user.name,
+        email=current_user.email,
+        role=current_user.role,
+        active=current_user.active,
+        created_at=current_user.created_at,
+        account=current_user.account,
+        profile_name=current_user.profile.name if current_user.profile else current_user.role.value.title(),
+        permissions=permission_codes_for_user(current_user),
+    )
