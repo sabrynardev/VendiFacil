@@ -32,8 +32,8 @@ export function RegisterPage() {
       await fetchMe();
       navigate("/");
       window.location.reload();
-    } catch (err: any) {
-      setError(err?.response?.data?.detail ?? "Não foi possível criar a conta.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível criar a conta.");
     } finally {
       setLoading(false);
     }
@@ -64,19 +64,19 @@ export function RegisterPage() {
             <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
               <label className="block space-y-2 text-sm">
                 <span>Nome da conta / empresa</span>
-                <input className="w-full rounded-xl border-stroke bg-white text-brandDeeper" value={accountName} onChange={(event) => setAccountName(event.target.value)} />
+                <input required minLength={2} className="w-full rounded-xl border-stroke bg-white text-brandDeeper" value={accountName} onChange={(event) => setAccountName(event.target.value)} />
               </label>
               <label className="block space-y-2 text-sm">
                 <span>Nome do administrador</span>
-                <input className="w-full rounded-xl border-stroke bg-white text-brandDeeper" value={adminName} onChange={(event) => setAdminName(event.target.value)} />
+                <input required minLength={2} className="w-full rounded-xl border-stroke bg-white text-brandDeeper" value={adminName} onChange={(event) => setAdminName(event.target.value)} />
               </label>
               <label className="block space-y-2 text-sm">
                 <span>E-mail do administrador</span>
-                <input type="email" className="w-full rounded-xl border-stroke bg-white text-brandDeeper" value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} />
+                <input required type="email" className="w-full rounded-xl border-stroke bg-white text-brandDeeper" value={adminEmail} onChange={(event) => setAdminEmail(event.target.value)} />
               </label>
               <label className="block space-y-2 text-sm">
                 <span>Senha</span>
-                <input type="password" className="w-full rounded-xl border-stroke bg-white text-brandDeeper" value={password} onChange={(event) => setPassword(event.target.value)} />
+                <input required minLength={6} type="password" className="w-full rounded-xl border-stroke bg-white text-brandDeeper" value={password} onChange={(event) => setPassword(event.target.value)} />
               </label>
               <label className="flex items-center gap-3 rounded-2xl border border-stroke bg-brand/4 px-4 py-3 text-sm text-slate-600">
                 <input type="checkbox" checked={withDefaultCategories} onChange={(event) => setWithDefaultCategories(event.target.checked)} />

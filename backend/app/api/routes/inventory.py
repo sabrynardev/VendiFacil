@@ -20,7 +20,12 @@ router = APIRouter()
 @router.get("", response_model=list[InventoryRecord])
 def list_inventory(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     records = []
-    for product in db.query(Product).filter(Product.account_id == current_user.account_id).order_by(Product.name.asc()).all():
+    for product in (
+        db.query(Product)
+        .filter(Product.account_id == current_user.account_id, Product.active.is_(True))
+        .order_by(Product.name.asc())
+        .all()
+    ):
         projection = inventory_projection(db, product, current_user.account_id)
         records.append(
             InventoryRecord(
@@ -42,7 +47,7 @@ def list_inventory(db: Session = Depends(get_db), current_user: User = Depends(g
 @router.get("/alerts", response_model=list[StockAlert])
 def alerts(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     data = []
-    for product in db.query(Product).filter(Product.account_id == current_user.account_id).all():
+    for product in db.query(Product).filter(Product.account_id == current_user.account_id, Product.active.is_(True)).all():
         status_label = product_status(float(product.stock_quantity), float(product.minimum_stock))
         if status_label != "NORMAL":
             data.append(
@@ -68,7 +73,11 @@ def create_movement(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.ESTOQUE)),
 ):
-    product = db.query(Product).filter(Product.id == payload.product_id, Product.account_id == current_user.account_id).first()
+    product = (
+        db.query(Product)
+        .filter(Product.id == payload.product_id, Product.account_id == current_user.account_id, Product.active.is_(True))
+        .first()
+    )
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Produto não encontrado.")
 

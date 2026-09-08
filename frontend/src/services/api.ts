@@ -46,24 +46,49 @@ async function parseBody(response: Response) {
   return text ? { detail: text } : null;
 }
 
+function getErrorDetail(data: unknown) {
+  if (typeof data !== "object" || data === null || !("detail" in data)) {
+    return null;
+  }
+
+  const detail = (data as { detail?: unknown }).detail;
+  if (typeof detail === "string") {
+    return detail;
+  }
+
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item) => {
+        if (typeof item !== "object" || item === null || !("msg" in item)) return null;
+        return typeof item.msg === "string" ? item.msg : null;
+      })
+      .filter((message): message is string => Boolean(message));
+    return messages.length ? messages.join(" ") : null;
+  }
+
+  return null;
+}
+
 async function request<T>(method: string, path: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
   const token = localStorage.getItem("vendifacil:token");
-  const response = await fetch(buildUrl(path, options?.params), {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  let response: Response;
+  try {
+    response = await fetch(buildUrl(path, options?.params), {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch {
+    throw new ApiError("Não foi possível conectar ao servidor. Verifique se o backend está ligado na porta 8000.", 0, null);
+  }
 
   const data = await parseBody(response);
 
   if (!response.ok) {
-    const detail =
-      typeof data === "object" && data !== null && "detail" in data && typeof (data as { detail?: unknown }).detail === "string"
-        ? (data as { detail: string }).detail
-        : "Erro na comunicação com a API.";
+    const detail = getErrorDetail(data) ?? "Erro na comunicação com a API.";
 
     throw new ApiError(detail, response.status, data);
   }

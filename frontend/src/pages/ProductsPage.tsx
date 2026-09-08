@@ -25,6 +25,7 @@ export function ProductsPage() {
   }, []);
   const [editing, setEditing] = useState<Product | null>(null);
   const [open, setOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   async function refresh() {
     const products = await catalogService.listProducts();
@@ -46,9 +47,16 @@ export function ProductsPage() {
 
   async function handleDelete(product: Product) {
     if (!window.confirm(`Excluir o produto "${product.name}"?`)) return;
-    await catalogService.deleteProduct(product.id);
-    toast.push("Produto removido.", "success");
-    await refresh();
+    setDeletingId(product.id);
+    try {
+      await catalogService.deleteProduct(product.id);
+      setData((current) => current ? { ...current, products: current.products.filter((item) => item.id !== product.id) } : current);
+      toast.push("Produto removido com sucesso.", "success");
+    } catch (error) {
+      toast.push(error instanceof Error ? error.message : "Não foi possível excluir o produto.", "error");
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   return (
@@ -92,7 +100,7 @@ export function ProductsPage() {
                     <Button variant="ghost" onClick={() => { setEditing(product); setOpen(true); }}>
                       <Pencil size={16} />
                     </Button>
-                    <Button variant="ghost" onClick={() => handleDelete(product)}>
+                    <Button variant="ghost" disabled={deletingId === product.id} onClick={() => handleDelete(product)}>
                       <Trash2 size={16} />
                     </Button>
                   </div>

@@ -66,7 +66,7 @@ def summary(db: Session, account_id: int) -> dict:
     average_ticket_yesterday = round(revenue_yesterday / sales_yesterday, 2) if sales_yesterday else 0
 
     low_stock_products = 0
-    for product in db.query(Product).filter(Product.account_id == account_id).all():
+    for product in db.query(Product).filter(Product.account_id == account_id, Product.active.is_(True)).all():
         if product_status(float(product.stock_quantity), float(product.minimum_stock)) in {"BAIXO", "CRÍTICO", "SEM ESTOQUE"}:
             low_stock_products += 1
 
