@@ -19,15 +19,15 @@ export function StatCard({
     <Card>
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-slate-400">{title}</p>
-          <p className="mt-2 text-3xl font-semibold">{currency ? formatCurrency(value) : value}</p>
+          <p className="text-sm text-slate-500">{title}</p>
+          <p className="mt-2 text-3xl font-semibold text-brandDeeper">{currency ? formatCurrency(value) : value}</p>
         </div>
-        <div className={`rounded-2xl p-2 ${positive ? "bg-emerald-500/15 text-emerald-300" : "bg-rose-500/15 text-rose-300"}`}>
+        <div className={`rounded-2xl p-2 ${positive ? "bg-brand/10 text-brand" : "bg-danger/10 text-danger"}`}>
           {positive ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
         </div>
       </div>
       {delta !== undefined && (
-        <p className={`mt-4 text-sm ${positive ? "text-emerald-300" : "text-rose-300"}`}>
+        <p className={`mt-4 text-sm ${positive ? "text-brandStrong" : "text-danger"}`}>
           {currency ? formatCurrency(Math.abs(delta)) : Math.abs(delta)} em relação a ontem
         </p>
       )}

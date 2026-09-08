@@ -18,7 +18,16 @@ def create_sale(db: Session, payload: SaleCreate, user: User) -> Sale:
         prepared_items: list[dict] = []
 
         for item in payload.items:
-            product = db.query(Product).filter(Product.id == item.product_id, Product.active.is_(True)).with_for_update().first()
+            product = (
+                db.query(Product)
+                .filter(
+                    Product.id == item.product_id,
+                    Product.account_id == user.account_id,
+                    Product.active.is_(True),
+                )
+                .with_for_update()
+                .first()
+            )
             if not product:
                 raise SaleValidationError(f"Produto {item.product_id} não encontrado.")
 
@@ -55,6 +64,7 @@ def create_sale(db: Session, payload: SaleCreate, user: User) -> Sale:
             change_amount = round(amount_received - total, 2)
 
         sale = Sale(
+            account_id=user.account_id,
             user_id=user.id,
             subtotal=round(subtotal, 2),
             discount=float(payload.discount),
@@ -83,6 +93,7 @@ def create_sale(db: Session, payload: SaleCreate, user: User) -> Sale:
             db.add(sale_item)
 
             movement = StockMovement(
+                account_id=user.account_id,
                 product_id=product.id,
                 user_id=user.id,
                 type=StockMovementType.VENDA,

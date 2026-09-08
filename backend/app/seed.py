@@ -5,44 +5,42 @@ from sqlalchemy.orm import Session
 
 from app.auth.security import hash_password
 from app.core.config import get_settings
+from app.models.account import Account
 from app.models.category import Category
 from app.models.product import Product
 from app.models.sale import Sale, SaleItem
 from app.models.stock_movement import StockMovement, StockMovementType
 from app.models.supplier import Supplier
 from app.models.user import User, UserRole
-
-
-DEFAULT_CATEGORIES = [
-    "Bebidas",
-    "Alimentos",
-    "Limpeza",
-    "Higiene",
-    "Frios",
-    "Padaria",
-    "Hortifruti",
-    "Doces",
-    "Outros",
-]
+from app.services.accounts import ensure_default_categories
 
 
 def seed_database(db: Session):
     settings = get_settings()
 
-    if not db.query(User).filter(User.email == settings.seed_admin_email).first():
-        db.add(
-            User(
-                name="Administrador",
-                email=settings.seed_admin_email,
-                password_hash=hash_password(settings.seed_admin_password),
-                role=UserRole.ADMIN,
-                active=True,
-            )
+    demo_account = db.query(Account).filter(Account.name == "Demo Principal").first()
+    if not demo_account:
+        demo_account = Account(name="Demo Principal", active=True)
+        db.add(demo_account)
+        db.commit()
+        db.refresh(demo_account)
+
+    admin = db.query(User).filter(User.email == settings.seed_admin_email).first()
+    if not admin:
+        admin = User(
+            account_id=demo_account.id,
+            name="Administrador",
+            email=settings.seed_admin_email,
+            password_hash=hash_password(settings.seed_admin_password),
+            role=UserRole.ADMIN,
+            active=True,
         )
+        db.add(admin)
 
     cashier = db.query(User).filter(User.email == "sabrina@marketpulse.dev").first()
     if not cashier:
         cashier = User(
+            account_id=demo_account.id,
             name="Sabrina",
             email="sabrina@marketpulse.dev",
             password_hash=hash_password("caixa123"),
@@ -51,22 +49,32 @@ def seed_database(db: Session):
         )
         db.add(cashier)
 
-    for name in DEFAULT_CATEGORIES:
-        if not db.query(Category).filter(Category.name == name).first():
-            db.add(Category(name=name, description=f"Categoria {name}"))
+    db.commit()
+    db.refresh(demo_account)
+    cashier = db.query(User).filter(User.email == "sabrina@marketpulse.dev").first()
 
-    suppliers = [
+    ensure_default_categories(db, demo_account.id)
+
+    suppliers_seed = [
         {"name": "Distribuidora Centro", "phone": "(11) 3333-1111", "email": "contato@centro.local"},
         {"name": "Atacado Bom Preco", "phone": "(11) 3333-2222", "email": "compras@bompreco.local"},
     ]
-    for supplier_data in suppliers:
-        if not db.query(Supplier).filter(Supplier.name == supplier_data["name"]).first():
-            db.add(Supplier(**supplier_data))
+    for supplier_data in suppliers_seed:
+        exists = (
+            db.query(Supplier)
+            .filter(Supplier.account_id == demo_account.id, Supplier.name == supplier_data["name"])
+            .first()
+        )
+        if not exists:
+            db.add(Supplier(account_id=demo_account.id, **supplier_data))
 
     db.commit()
 
-    category_map = {category.name: category for category in db.query(Category).all()}
-    supplier_list = db.query(Supplier).all()
+    category_map = {
+        category.name: category
+        for category in db.query(Category).filter(Category.account_id == demo_account.id).all()
+    }
+    supplier_list = db.query(Supplier).filter(Supplier.account_id == demo_account.id).all()
 
     products_seed = [
         ("Coca-Cola 2L", "Bebidas", 6.20, 9.50, 40, 20, "7894900011517"),
@@ -83,12 +91,15 @@ def seed_database(db: Session):
 
     for index, item in enumerate(products_seed, start=1):
         name, category_name, cost_price, sale_price, stock, minimum_stock, barcode = item
-        if not db.query(Product).filter(Product.sku == f"SKU-{index:04d}").first():
+        sku = f"SKU-{index:04d}"
+        exists = db.query(Product).filter(Product.account_id == demo_account.id, Product.sku == sku).first()
+        if not exists:
             db.add(
                 Product(
+                    account_id=demo_account.id,
                     name=name,
                     description=f"{name} para o PDV VendiFácil",
-                    sku=f"SKU-{index:04d}",
+                    sku=sku,
                     barcode=barcode,
                     category_id=category_map[category_name].id,
                     supplier_id=choice(supplier_list).id if supplier_list else None,
@@ -103,11 +114,11 @@ def seed_database(db: Session):
 
     db.commit()
 
-    if db.query(Sale).count() > 0:
+    existing_demo_sales = db.query(Sale).filter(Sale.account_id == demo_account.id).count()
+    if existing_demo_sales > 0 or cashier is None:
         return
 
-    cashier = db.query(User).filter(User.email == "sabrina@marketpulse.dev").first()
-    products = db.query(Product).all()
+    products = db.query(Product).filter(Product.account_id == demo_account.id).all()
     payment_methods = ["PIX", "DINHEIRO", "DEBITO", "CREDITO"]
 
     for day_offset in range(1, 15):
@@ -116,6 +127,7 @@ def seed_database(db: Session):
             created_at = datetime.utcnow() - timedelta(days=day_offset, hours=randint(1, 10), minutes=randint(0, 59))
             items = []
             subtotal = 0.0
+
             for _item_index in range(randint(1, 4)):
                 product = choice(products)
                 quantity = randint(1, 3)
@@ -130,6 +142,7 @@ def seed_database(db: Session):
             change_amount = round(amount_received - total, 2) if payment_method == "DINHEIRO" else 0
 
             sale = Sale(
+                account_id=demo_account.id,
                 user_id=cashier.id,
                 subtotal=subtotal,
                 discount=discount,
@@ -157,6 +170,7 @@ def seed_database(db: Session):
                 product.stock_quantity = max(round(previous_stock - quantity, 2), 0)
                 db.add(
                     StockMovement(
+                        account_id=demo_account.id,
                         product_id=product.id,
                         user_id=cashier.id,
                         type=StockMovementType.VENDA,

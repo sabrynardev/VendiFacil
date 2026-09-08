@@ -17,19 +17,24 @@ def product_status(stock_quantity: float, minimum_stock: float) -> str:
     return "NORMAL"
 
 
-def average_sales_last_30_days(db: Session, product_id: int) -> float:
+def average_sales_last_30_days(db: Session, account_id: int, product_id: int) -> float:
     since = datetime.utcnow() - timedelta(days=30)
     total_quantity = (
         db.query(func.coalesce(func.sum(SaleItem.quantity), 0))
         .join(Sale, Sale.id == SaleItem.sale_id)
-        .filter(SaleItem.product_id == product_id, Sale.created_at >= since, Sale.status == SaleStatus.COMPLETED)
+        .filter(
+            Sale.account_id == account_id,
+            SaleItem.product_id == product_id,
+            Sale.created_at >= since,
+            Sale.status == SaleStatus.COMPLETED,
+        )
         .scalar()
     )
     return round(float(total_quantity or 0) / 30, 2)
 
 
-def inventory_projection(db: Session, product: Product) -> dict:
-    avg_per_day = average_sales_last_30_days(db, product.id)
+def inventory_projection(db: Session, product: Product, account_id: int) -> dict:
+    avg_per_day = average_sales_last_30_days(db, account_id, product.id)
     current_stock = float(product.stock_quantity)
     minimum_stock = float(product.minimum_stock)
     days_remaining = round(current_stock / avg_per_day, 1) if avg_per_day > 0 else None

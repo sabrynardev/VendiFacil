@@ -92,10 +92,10 @@ export function ProductForm({ categories, suppliers, initialValue, onSubmit, onC
         { name: "unit", label: "Unidade" },
       ].map((field) => (
         <label key={field.name} className="space-y-2 text-sm">
-          <span className="text-slate-300">{field.label}</span>
+          <span className="text-slate-600">{field.label}</span>
           <input
             required={field.name !== "barcode"}
-            className="w-full rounded-xl border-stroke bg-slate-900/70 text-slate-100"
+            className="w-full rounded-xl border-stroke bg-white text-brandDeeper"
             value={String((form as Record<string, string | number | boolean>)[field.name] ?? "")}
             onChange={(event) => setForm((current) => ({ ...current, [field.name]: event.target.value }))}
           />
@@ -103,9 +103,9 @@ export function ProductForm({ categories, suppliers, initialValue, onSubmit, onC
       ))}
 
       <label className="space-y-2 text-sm md:col-span-2">
-        <span className="text-slate-300">Descrição</span>
+        <span className="text-slate-600">Descrição</span>
         <textarea
-          className="w-full rounded-xl border-stroke bg-slate-900/70 text-slate-100"
+          className="w-full rounded-xl border-stroke bg-white text-brandDeeper"
           rows={3}
           value={form.description}
           onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
@@ -113,9 +113,9 @@ export function ProductForm({ categories, suppliers, initialValue, onSubmit, onC
       </label>
 
       <label className="space-y-2 text-sm">
-        <span className="text-slate-300">Categoria</span>
+        <span className="text-slate-600">Categoria</span>
         <select
-          className="w-full rounded-xl border-stroke bg-slate-900/70 text-slate-100"
+          className="w-full rounded-xl border-stroke bg-white text-brandDeeper"
           value={String(form.category_id)}
           onChange={(event) => setForm((current) => ({ ...current, category_id: event.target.value }))}
         >
@@ -129,9 +129,9 @@ export function ProductForm({ categories, suppliers, initialValue, onSubmit, onC
       </label>
 
       <label className="space-y-2 text-sm">
-        <span className="text-slate-300">Fornecedor</span>
+        <span className="text-slate-600">Fornecedor</span>
         <select
-          className="w-full rounded-xl border-stroke bg-slate-900/70 text-slate-100"
+          className="w-full rounded-xl border-stroke bg-white text-brandDeeper"
           value={String(form.supplier_id)}
           onChange={(event) => setForm((current) => ({ ...current, supplier_id: event.target.value }))}
         >
@@ -151,20 +151,20 @@ export function ProductForm({ categories, suppliers, initialValue, onSubmit, onC
         { name: "minimum_stock", label: "Estoque mínimo" },
       ].map((field) => (
         <label key={field.name} className="space-y-2 text-sm">
-          <span className="text-slate-300">{field.label}</span>
+          <span className="text-slate-600">{field.label}</span>
           <input
             type="number"
             min="0"
             step="0.01"
-            className="w-full rounded-xl border-stroke bg-slate-900/70 text-slate-100"
+            className="w-full rounded-xl border-stroke bg-white text-brandDeeper"
             value={(form as Record<string, string | number | boolean>)[field.name] as number}
             onChange={(event) => setForm((current) => ({ ...current, [field.name]: Number(event.target.value) }))}
           />
         </label>
       ))}
 
-      <div className="rounded-2xl border border-stroke bg-slate-900/70 p-4 text-sm md:col-span-2">
-        <p>Margem: <span className="font-semibold text-emerald-300">{margin.toFixed(2)}</span></p>
+      <div className="rounded-2xl border border-stroke bg-brand/4 p-4 text-sm md:col-span-2">
+        <p>Margem: <span className="font-semibold text-brandStrong">{margin.toFixed(2)}</span></p>
         <p className="mt-1">Percentual: <span className="font-semibold text-brand">{marginPercent.toFixed(2)}%</span></p>
       </div>
 

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   font-family: "Segoe UI", "IBM Plex Sans", sans-serif;
 }
 
@@ -11,10 +11,11 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 25%),
-    radial-gradient(circle at top right, rgba(16, 185, 129, 0.12), transparent 22%),
-    #090b12;
-  color: #f8fafc;
+    radial-gradient(circle at top left, rgba(2, 59, 230, 0.12), transparent 24%),
+    radial-gradient(circle at top right, rgba(1, 37, 143, 0.1), transparent 18%),
+    radial-gradient(circle at bottom left, rgba(2, 49, 189, 0.08), transparent 18%),
+    linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
+  color: #011142;
 }
 
 #root {
@@ -27,18 +28,29 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #243047;
+  background: #bed0ff;
   border-radius: 999px;
 }
 
 .glass-panel {
-  @apply border border-stroke/80 bg-surface/90 shadow-soft backdrop-blur;
+  @apply border border-stroke bg-surface/95 shadow-soft backdrop-blur;
 }
 
 .page-title {
-  @apply text-2xl font-semibold tracking-tight text-slate-50;
+  @apply text-2xl font-semibold tracking-tight text-brandDeeper;
 }
 
 .page-subtitle {
-  @apply mt-1 text-sm text-slate-400;
+  @apply mt-1 text-sm text-slate-500;
+}
+
+input,
+select,
+textarea {
+  color: #011142;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #7181a6;
 }

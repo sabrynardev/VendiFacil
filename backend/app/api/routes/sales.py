@@ -40,14 +40,14 @@ def serialize_sale(sale: Sale) -> SaleResponse:
 
 
 @router.get("", response_model=list[SaleResponse])
-def list_sales(db: Session = Depends(get_db), _: object = Depends(get_current_user)):
-    sales = db.query(Sale).order_by(Sale.created_at.desc()).all()
+def list_sales(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    sales = db.query(Sale).filter(Sale.account_id == current_user.account_id).order_by(Sale.created_at.desc()).all()
     return [serialize_sale(sale) for sale in sales]
 
 
 @router.get("/{sale_id}", response_model=SaleResponse)
-def get_sale(sale_id: int, db: Session = Depends(get_db), _: object = Depends(get_current_user)):
-    sale = db.query(Sale).filter(Sale.id == sale_id).first()
+def get_sale(sale_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    sale = db.query(Sale).filter(Sale.id == sale_id, Sale.account_id == current_user.account_id).first()
     if not sale:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Venda não encontrada.")
     return serialize_sale(sale)

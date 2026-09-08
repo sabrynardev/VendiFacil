@@ -22,7 +22,7 @@ export function ReportsPage() {
           <p className="page-subtitle">Resumo consolidado por período com indicadores de faturamento e margem estimada.</p>
         </div>
         <select
-          className="rounded-xl border border-stroke bg-slate-900/70 px-4 py-2 text-sm text-slate-100"
+          className="rounded-xl border border-stroke bg-white px-4 py-2 text-sm text-brandDeeper"
           value={period}
           onChange={(event) => setPeriod(event.target.value)}
         >
@@ -35,29 +35,29 @@ export function ReportsPage() {
       </div>
       {loading || !data ? (
         <Card>
-          <p className="text-sm text-slate-400">Gerando relatório...</p>
+          <p className="text-sm text-slate-500">Gerando relatório...</p>
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <Card>
-            <p className="text-sm text-slate-400">Faturamento</p>
-            <p className="mt-2 text-3xl font-semibold">{formatCurrency(data.revenue)}</p>
+            <p className="text-sm text-slate-500">Faturamento</p>
+            <p className="mt-2 text-3xl font-semibold text-brandDeeper">{formatCurrency(data.revenue)}</p>
           </Card>
           <Card>
-            <p className="text-sm text-slate-400">Vendas</p>
-            <p className="mt-2 text-3xl font-semibold">{data.sales_count}</p>
+            <p className="text-sm text-slate-500">Vendas</p>
+            <p className="mt-2 text-3xl font-semibold text-brandDeeper">{data.sales_count}</p>
           </Card>
           <Card>
-            <p className="text-sm text-slate-400">Ticket médio</p>
-            <p className="mt-2 text-3xl font-semibold">{formatCurrency(data.average_ticket)}</p>
+            <p className="text-sm text-slate-500">Ticket médio</p>
+            <p className="mt-2 text-3xl font-semibold text-brandDeeper">{formatCurrency(data.average_ticket)}</p>
           </Card>
           <Card>
-            <p className="text-sm text-slate-400">Lucro estimado</p>
-            <p className="mt-2 text-3xl font-semibold text-emerald-300">{formatCurrency(data.estimated_profit)}</p>
+            <p className="text-sm text-slate-500">Lucro estimado</p>
+            <p className="mt-2 text-3xl font-semibold text-brandStrong">{formatCurrency(data.estimated_profit)}</p>
           </Card>
           <Card>
-            <p className="text-sm text-slate-400">Itens vendidos</p>
-            <p className="mt-2 text-3xl font-semibold">{data.items_sold}</p>
+            <p className="text-sm text-slate-500">Itens vendidos</p>
+            <p className="mt-2 text-3xl font-semibold text-brandDeeper">{data.items_sold}</p>
           </Card>
         </div>
       )}

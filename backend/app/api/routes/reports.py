@@ -8,6 +8,7 @@ from app.auth.dependencies import get_current_user
 from app.database.session import get_db
 from app.models.product import Product
 from app.models.sale import Sale, SaleItem, SaleStatus
+from app.models.user import User
 
 router = APIRouter()
 
@@ -16,7 +17,7 @@ router = APIRouter()
 def reports(
     period: str = Query(default="7d"),
     db: Session = Depends(get_db),
-    _: object = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     period_map = {"today": 1, "7d": 7, "30d": 30}
     days = period_map.get(period, 7)
@@ -24,13 +25,13 @@ def reports(
 
     revenue = float(
         db.query(func.coalesce(func.sum(Sale.total), 0))
-        .filter(Sale.created_at >= since, Sale.status == SaleStatus.COMPLETED)
+        .filter(Sale.account_id == current_user.account_id, Sale.created_at >= since, Sale.status == SaleStatus.COMPLETED)
         .scalar()
         or 0
     )
     sales_count = int(
         db.query(func.count(Sale.id))
-        .filter(Sale.created_at >= since, Sale.status == SaleStatus.COMPLETED)
+        .filter(Sale.account_id == current_user.account_id, Sale.created_at >= since, Sale.status == SaleStatus.COMPLETED)
         .scalar()
         or 0
     )
@@ -39,14 +40,19 @@ def reports(
         db.query(func.coalesce(func.sum((Product.sale_price - Product.cost_price) * SaleItem.quantity), 0))
         .join(SaleItem, SaleItem.product_id == Product.id)
         .join(Sale, Sale.id == SaleItem.sale_id)
-        .filter(Sale.created_at >= since, Sale.status == SaleStatus.COMPLETED)
+        .filter(
+            Product.account_id == current_user.account_id,
+            Sale.account_id == current_user.account_id,
+            Sale.created_at >= since,
+            Sale.status == SaleStatus.COMPLETED,
+        )
         .scalar()
         or 0
     )
     items_sold = float(
         db.query(func.coalesce(func.sum(SaleItem.quantity), 0))
         .join(Sale, Sale.id == SaleItem.sale_id)
-        .filter(Sale.created_at >= since, Sale.status == SaleStatus.COMPLETED)
+        .filter(Sale.account_id == current_user.account_id, Sale.created_at >= since, Sale.status == SaleStatus.COMPLETED)
         .scalar()
         or 0
     )

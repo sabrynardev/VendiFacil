@@ -1,12 +1,21 @@
 export type UserRole = "ADMIN" | "CAIXA" | "ESTOQUE";
 
+export interface Account {
+  id: number;
+  name: string;
+  active: boolean;
+  created_at: string;
+}
+
 export interface User {
   id: number;
+  account_id: number;
   name: string;
   email: string;
   role: UserRole;
   active: boolean;
   created_at: string;
+  account: Account;
 }
 
 export interface Category {

@@ -8,8 +8,8 @@ export const formatDateTime = (value: string) =>
   }).format(new Date(value));
 
 export const classByStatus: Record<string, string> = {
-  NORMAL: "bg-emerald-500/15 text-emerald-300",
-  BAIXO: "bg-amber-500/15 text-amber-300",
-  "CRÍTICO": "bg-rose-500/15 text-rose-300",
-  "SEM ESTOQUE": "bg-rose-600/20 text-rose-200",
+  NORMAL: "bg-brand/10 text-brandStrong",
+  BAIXO: "bg-amber-100 text-amber-700",
+  "CRÍTICO": "bg-rose-100 text-rose-700",
+  "SEM ESTOQUE": "bg-rose-200 text-rose-800",
 };

@@ -65,7 +65,7 @@ export function ProductsPage() {
       </div>
       <Card>
         {loading || !data ? (
-          <p className="text-sm text-slate-400">Carregando produtos...</p>
+          <p className="text-sm text-slate-500">Carregando produtos...</p>
         ) : data.products.length === 0 ? (
           <EmptyState title="Nenhum produto cadastrado" description="Cadastre o primeiro item para começar a vender." />
         ) : (
@@ -78,11 +78,11 @@ export function ProductsPage() {
                     <p className="text-xs text-slate-500">{product.barcode || "Sem código"}</p>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-slate-300">{product.sku}</td>
-                <td className="px-4 py-3 text-slate-300">{product.category_name || "Sem categoria"}</td>
+                <td className="px-4 py-3 text-slate-600">{product.sku}</td>
+                <td className="px-4 py-3 text-slate-600">{product.category_name || "Sem categoria"}</td>
                 <td className="px-4 py-3">{formatCurrency(product.cost_price)}</td>
                 <td className="px-4 py-3">{formatCurrency(product.sale_price)}</td>
-                <td className="px-4 py-3 text-emerald-300">{formatCurrency(product.margin)}</td>
+                <td className="px-4 py-3 text-brandStrong">{formatCurrency(product.margin)}</td>
                 <td className="px-4 py-3">{product.stock_quantity}</td>
                 <td className="px-4 py-3">
                   <Badge label={product.stock_status} />

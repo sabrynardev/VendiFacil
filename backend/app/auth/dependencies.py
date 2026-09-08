@@ -24,6 +24,8 @@ def get_current_user(
     user = db.query(User).filter(User.email == payload.get("sub")).first()
     if not user or not user.active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário inválido.")
+    if not user.account or not user.account.active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Conta inválida.")
     return user
 
 

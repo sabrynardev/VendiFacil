@@ -19,7 +19,7 @@ export function InventoryPage() {
       </div>
       <Card>
         {loading || !data ? (
-          <p className="text-sm text-slate-400">Carregando estoque...</p>
+          <p className="text-sm text-slate-500">Carregando estoque...</p>
         ) : data.inventory.length === 0 ? (
           <EmptyState title="Sem itens em estoque" description="Cadastre produtos para visualizar as projeções." />
         ) : (
@@ -47,12 +47,12 @@ export function InventoryPage() {
         <h2 className="text-lg font-semibold">Movimentações recentes</h2>
         <div className="mt-4 space-y-3">
           {data?.movements.slice(0, 8).map((movement) => (
-            <div key={movement.id} className="flex flex-col justify-between gap-2 rounded-2xl bg-slate-900/70 px-4 py-3 md:flex-row md:items-center">
+            <div key={movement.id} className="flex flex-col justify-between gap-2 rounded-2xl border border-stroke bg-brand/4 px-4 py-3 md:flex-row md:items-center">
               <div>
                 <p className="font-medium">{movement.product_name}</p>
-                <p className="text-sm text-slate-400">{movement.type} • {movement.previous_stock} → {movement.new_stock}</p>
+                <p className="text-sm text-slate-600">{movement.type} • {movement.previous_stock} → {movement.new_stock}</p>
               </div>
-              <div className="text-right text-sm text-slate-400">
+              <div className="text-right text-sm text-slate-600">
                 <p>{movement.user_name || "Sistema"}</p>
                 <p>{new Date(movement.created_at).toLocaleString("pt-BR")}</p>
               </div>

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
 from app.core.config import get_settings
+from app.database.bootstrap import ensure_multitenant_schema
 from app.database.session import Base, SessionLocal, engine
 from app.seed import seed_database
 
@@ -22,6 +23,7 @@ app.add_middleware(
 @app.on_event("startup")
 def startup():
     Base.metadata.create_all(bind=engine)
+    ensure_multitenant_schema(engine)
     if settings.auto_seed:
         with SessionLocal() as db:
             seed_database(db)

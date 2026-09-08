@@ -16,32 +16,48 @@ def _day_bounds(offset_days: int = 0):
     return start, end
 
 
-def summary(db: Session) -> dict:
+def summary(db: Session, account_id: int) -> dict:
     today_start, today_end = _day_bounds(0)
     yesterday_start, yesterday_end = _day_bounds(1)
 
     revenue_today = float(
         db.query(func.coalesce(func.sum(Sale.total), 0))
-        .filter(Sale.created_at.between(today_start, today_end), Sale.status == SaleStatus.COMPLETED)
+        .filter(
+            Sale.account_id == account_id,
+            Sale.created_at.between(today_start, today_end),
+            Sale.status == SaleStatus.COMPLETED,
+        )
         .scalar()
         or 0
     )
     revenue_yesterday = float(
         db.query(func.coalesce(func.sum(Sale.total), 0))
-        .filter(Sale.created_at.between(yesterday_start, yesterday_end), Sale.status == SaleStatus.COMPLETED)
+        .filter(
+            Sale.account_id == account_id,
+            Sale.created_at.between(yesterday_start, yesterday_end),
+            Sale.status == SaleStatus.COMPLETED,
+        )
         .scalar()
         or 0
     )
 
     sales_today = int(
         db.query(func.count(Sale.id))
-        .filter(Sale.created_at.between(today_start, today_end), Sale.status == SaleStatus.COMPLETED)
+        .filter(
+            Sale.account_id == account_id,
+            Sale.created_at.between(today_start, today_end),
+            Sale.status == SaleStatus.COMPLETED,
+        )
         .scalar()
         or 0
     )
     sales_yesterday = int(
         db.query(func.count(Sale.id))
-        .filter(Sale.created_at.between(yesterday_start, yesterday_end), Sale.status == SaleStatus.COMPLETED)
+        .filter(
+            Sale.account_id == account_id,
+            Sale.created_at.between(yesterday_start, yesterday_end),
+            Sale.status == SaleStatus.COMPLETED,
+        )
         .scalar()
         or 0
     )
@@ -50,7 +66,7 @@ def summary(db: Session) -> dict:
     average_ticket_yesterday = round(revenue_yesterday / sales_yesterday, 2) if sales_yesterday else 0
 
     low_stock_products = 0
-    for product in db.query(Product).all():
+    for product in db.query(Product).filter(Product.account_id == account_id).all():
         if product_status(float(product.stock_quantity), float(product.minimum_stock)) in {"BAIXO", "CRÍTICO", "SEM ESTOQUE"}:
             low_stock_products += 1
 
@@ -62,13 +78,17 @@ def summary(db: Session) -> dict:
     }
 
 
-def revenue_last_7_days(db: Session) -> list[dict]:
+def revenue_last_7_days(db: Session, account_id: int) -> list[dict]:
     points = []
     for offset in range(6, -1, -1):
         start, end = _day_bounds(offset)
         total = float(
             db.query(func.coalesce(func.sum(Sale.total), 0))
-            .filter(Sale.created_at.between(start, end), Sale.status == SaleStatus.COMPLETED)
+            .filter(
+                Sale.account_id == account_id,
+                Sale.created_at.between(start, end),
+                Sale.status == SaleStatus.COMPLETED,
+            )
             .scalar()
             or 0
         )
@@ -76,12 +96,12 @@ def revenue_last_7_days(db: Session) -> list[dict]:
     return points
 
 
-def top_products(db: Session, limit: int = 5) -> list[dict]:
+def top_products(db: Session, account_id: int, limit: int = 5) -> list[dict]:
     rows = (
         db.query(Product.name, func.coalesce(func.sum(SaleItem.quantity), 0).label("quantity"))
         .join(SaleItem, SaleItem.product_id == Product.id)
         .join(Sale, Sale.id == SaleItem.sale_id)
-        .filter(Sale.status == SaleStatus.COMPLETED)
+        .filter(Product.account_id == account_id, Sale.account_id == account_id, Sale.status == SaleStatus.COMPLETED)
         .group_by(Product.name)
         .order_by(func.sum(SaleItem.quantity).desc())
         .limit(limit)
@@ -90,23 +110,23 @@ def top_products(db: Session, limit: int = 5) -> list[dict]:
     return [{"product": row[0], "quantity": float(row[1])} for row in rows]
 
 
-def sales_by_category(db: Session) -> list[dict]:
+def sales_by_category(db: Session, account_id: int) -> list[dict]:
     rows = (
         db.query(func.coalesce(Category.name, "Sem categoria"), func.coalesce(func.sum(SaleItem.subtotal), 0))
         .join(Product, Product.category_id == Category.id)
         .join(SaleItem, SaleItem.product_id == Product.id)
         .join(Sale, Sale.id == SaleItem.sale_id)
-        .filter(Sale.status == SaleStatus.COMPLETED)
+        .filter(Category.account_id == account_id, Product.account_id == account_id, Sale.account_id == account_id, Sale.status == SaleStatus.COMPLETED)
         .group_by(Category.name)
         .all()
     )
     return [{"category": row[0], "sales": float(row[1])} for row in rows]
 
 
-def payment_methods(db: Session) -> list[dict]:
+def payment_methods(db: Session, account_id: int) -> list[dict]:
     rows = (
         db.query(Sale.payment_method, func.coalesce(func.sum(Sale.total), 0))
-        .filter(Sale.status == SaleStatus.COMPLETED)
+        .filter(Sale.account_id == account_id, Sale.status == SaleStatus.COMPLETED)
         .group_by(Sale.payment_method)
         .all()
     )

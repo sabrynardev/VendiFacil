@@ -53,7 +53,7 @@ export function SupplierForm({
           <span>{label}</span>
           <input
             required={name === "name"}
-            className="w-full rounded-xl border-stroke bg-slate-900/70 text-slate-100"
+            className="w-full rounded-xl border-stroke bg-white text-brandDeeper"
             value={form[name as keyof typeof form]}
             onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.value }))}
           />
@@ -62,7 +62,7 @@ export function SupplierForm({
       <label className="space-y-2 text-sm md:col-span-2">
         <span>Endereço</span>
         <input
-          className="w-full rounded-xl border-stroke bg-slate-900/70 text-slate-100"
+          className="w-full rounded-xl border-stroke bg-white text-brandDeeper"
           value={form.address}
           onChange={(event) => setForm((current) => ({ ...current, address: event.target.value }))}
         />
@@ -71,7 +71,7 @@ export function SupplierForm({
         <span>Observações</span>
         <textarea
           rows={3}
-          className="w-full rounded-xl border-stroke bg-slate-900/70 text-slate-100"
+          className="w-full rounded-xl border-stroke bg-white text-brandDeeper"
           value={form.notes}
           onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
         />

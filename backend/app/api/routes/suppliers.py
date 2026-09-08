@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.auth.dependencies import get_current_user, require_roles
 from app.database.session import get_db
 from app.models.supplier import Supplier
-from app.models.user import UserRole
+from app.models.user import User, UserRole
 from app.schemas.supplier import SupplierCreate, SupplierResponse, SupplierUpdate
 
 router = APIRouter()
@@ -26,8 +26,8 @@ def serialize_supplier(supplier: Supplier) -> SupplierResponse:
 
 
 @router.get("", response_model=list[SupplierResponse])
-def list_suppliers(db: Session = Depends(get_db), _: object = Depends(get_current_user)):
-    suppliers = db.query(Supplier).order_by(Supplier.name.asc()).all()
+def list_suppliers(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    suppliers = db.query(Supplier).filter(Supplier.account_id == current_user.account_id).order_by(Supplier.name.asc()).all()
     return [serialize_supplier(supplier) for supplier in suppliers]
 
 
@@ -35,9 +35,9 @@ def list_suppliers(db: Session = Depends(get_db), _: object = Depends(get_curren
 def create_supplier(
     payload: SupplierCreate,
     db: Session = Depends(get_db),
-    _: object = Depends(require_roles(UserRole.ADMIN, UserRole.ESTOQUE)),
+    current_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.ESTOQUE)),
 ):
-    supplier = Supplier(**payload.model_dump())
+    supplier = Supplier(account_id=current_user.account_id, **payload.model_dump())
     db.add(supplier)
     db.commit()
     db.refresh(supplier)
@@ -49,9 +49,9 @@ def update_supplier(
     supplier_id: int,
     payload: SupplierUpdate,
     db: Session = Depends(get_db),
-    _: object = Depends(require_roles(UserRole.ADMIN, UserRole.ESTOQUE)),
+    current_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.ESTOQUE)),
 ):
-    supplier = db.query(Supplier).filter(Supplier.id == supplier_id).first()
+    supplier = db.query(Supplier).filter(Supplier.id == supplier_id, Supplier.account_id == current_user.account_id).first()
     if not supplier:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Fornecedor não encontrado.")
     for field, value in payload.model_dump().items():
@@ -65,9 +65,9 @@ def update_supplier(
 def delete_supplier(
     supplier_id: int,
     db: Session = Depends(get_db),
-    _: object = Depends(require_roles(UserRole.ADMIN, UserRole.ESTOQUE)),
+    current_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.ESTOQUE)),
 ):
-    supplier = db.query(Supplier).filter(Supplier.id == supplier_id).first()
+    supplier = db.query(Supplier).filter(Supplier.id == supplier_id, Supplier.account_id == current_user.account_id).first()
     if not supplier:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Fornecedor não encontrado.")
     db.delete(supplier)

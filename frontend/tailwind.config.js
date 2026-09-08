@@ -6,17 +6,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "#090B12",
-        surface: "#121826",
-        surfaceAlt: "#1B2233",
-        stroke: "#243047",
-        brand: "#3B82F6",
-        accent: "#10B981",
-        warning: "#F59E0B",
-        danger: "#EF4444",
+        background: "#F4F8FF",
+        surface: "#FFFFFF",
+        surfaceAlt: "#EAF1FF",
+        stroke: "#D7E3FF",
+        brand: "#023BE6",
+        brandDark: "#011C6B",
+        brandDeeper: "#011142",
+        brandMid: "#01258F",
+        brandStrong: "#0231BD",
+        accent: "#01258F",
+        warning: "#D97706",
+        danger: "#D92D20",
       },
       boxShadow: {
-        soft: "0 20px 45px rgba(3, 7, 18, 0.28)",
+        soft: "0 24px 60px rgba(1, 28, 107, 0.12)",
       },
       borderRadius: {
         "2xl": "1.25rem",

@@ -21,6 +21,19 @@ Sistema completo de PDV para mercadinho com frontend em React + TypeScript e bac
 5. Finalize a venda com `PIX`
 6. Valide o reflexo da operação em `Vendas`, `Estoque` e `Dashboard`
 
+## Página de apresentação comercial
+
+Além da área autenticada, o projeto agora possui uma rota pública para demonstração comercial:
+
+- [http://localhost:5173/apresentacao](http://localhost:5173/apresentacao)
+
+Essa página foi pensada para:
+
+- captar clientes locais
+- apresentar os benefícios do sistema sem login
+- mostrar planos sugeridos de implantação e suporte
+- servir como base para anúncios, WhatsApp e reuniões presenciais
+
 ## Por que este projeto é forte para portfólio
 
 - Resolve um problema real de operação comercial, em vez de ser apenas um CRUD genérico

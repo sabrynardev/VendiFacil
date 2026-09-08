@@ -18,10 +18,10 @@ router = APIRouter()
 
 
 @router.get("", response_model=list[InventoryRecord])
-def list_inventory(db: Session = Depends(get_db), _: object = Depends(get_current_user)):
+def list_inventory(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     records = []
-    for product in db.query(Product).order_by(Product.name.asc()).all():
-        projection = inventory_projection(db, product)
+    for product in db.query(Product).filter(Product.account_id == current_user.account_id).order_by(Product.name.asc()).all():
+        projection = inventory_projection(db, product, current_user.account_id)
         records.append(
             InventoryRecord(
                 product_id=product.id,
@@ -40,9 +40,9 @@ def list_inventory(db: Session = Depends(get_db), _: object = Depends(get_curren
 
 
 @router.get("/alerts", response_model=list[StockAlert])
-def alerts(db: Session = Depends(get_db), _: object = Depends(get_current_user)):
+def alerts(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     data = []
-    for product in db.query(Product).all():
+    for product in db.query(Product).filter(Product.account_id == current_user.account_id).all():
         status_label = product_status(float(product.stock_quantity), float(product.minimum_stock))
         if status_label != "NORMAL":
             data.append(
@@ -58,8 +58,8 @@ def alerts(db: Session = Depends(get_db), _: object = Depends(get_current_user))
 
 
 @router.get("/predictions", response_model=list[InventoryRecord])
-def predictions(db: Session = Depends(get_db), _: object = Depends(get_current_user)):
-    return list_inventory(db)
+def predictions(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return list_inventory(db, current_user)
 
 
 @router.post("/movement", response_model=StockMovementResponse, status_code=status.HTTP_201_CREATED)
@@ -68,7 +68,7 @@ def create_movement(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.ESTOQUE)),
 ):
-    product = db.query(Product).filter(Product.id == payload.product_id).first()
+    product = db.query(Product).filter(Product.id == payload.product_id, Product.account_id == current_user.account_id).first()
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Produto não encontrado.")
 
@@ -84,6 +84,7 @@ def create_movement(
 
     product.stock_quantity = new_stock
     movement = StockMovement(
+        account_id=current_user.account_id,
         product_id=product.id,
         user_id=current_user.id,
         type=payload.type,
@@ -109,8 +110,13 @@ def create_movement(
 
 
 @router.get("/movements", response_model=list[StockMovementResponse])
-def list_movements(db: Session = Depends(get_db), _: object = Depends(get_current_user)):
-    movements = db.query(StockMovement).order_by(StockMovement.created_at.desc()).all()
+def list_movements(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    movements = (
+        db.query(StockMovement)
+        .filter(StockMovement.account_id == current_user.account_id)
+        .order_by(StockMovement.created_at.desc())
+        .all()
+    )
     return [
         StockMovementResponse(
             id=movement.id,
