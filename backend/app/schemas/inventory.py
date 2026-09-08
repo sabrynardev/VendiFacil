@@ -31,6 +31,7 @@ class StockMovementCreate(BaseModel):
     quantity: float = Field(gt=0)
     type: StockMovementType
     reason: str | None = None
+    target_stock: float | None = Field(default=None, ge=0)
 
 
 class StockMovementResponse(BaseModel):
@@ -42,4 +43,6 @@ class StockMovementResponse(BaseModel):
     type: StockMovementType
     user_name: str | None
     reason: str | None
+    reference_type: str | None = None
+    reference_id: int | None = None
     created_at: datetime

@@ -53,6 +53,10 @@ def ensure_multitenant_schema(engine: Engine) -> None:
             connection.execute(text("ALTER TABLE products ADD COLUMN brand VARCHAR(100)"))
         if "suppliers" in inspector.get_table_names() and not _has_column(inspector, "suppliers", "active"):
             connection.execute(text("ALTER TABLE suppliers ADD COLUMN active BOOLEAN NOT NULL DEFAULT 1"))
+        if "stock_movements" in inspector.get_table_names() and not _has_column(inspector, "stock_movements", "reference_type"):
+            connection.execute(text("ALTER TABLE stock_movements ADD COLUMN reference_type VARCHAR(40)"))
+        if "stock_movements" in inspector.get_table_names() and not _has_column(inspector, "stock_movements", "reference_id"):
+            connection.execute(text("ALTER TABLE stock_movements ADD COLUMN reference_id INTEGER"))
 
         inspector = inspect(connection)
 
@@ -170,6 +174,18 @@ def ensure_multitenant_schema(engine: Engine) -> None:
                 text("CREATE UNIQUE INDEX IF NOT EXISTS uq_categories_account_name ON categories (account_id, name)")
             )
         if "products" in inspector.get_table_names():
+            connection.execute(
+                text(
+                    """
+                    UPDATE products SET unit = CASE lower(unit)
+                        WHEN 'unidade' THEN 'UN' WHEN 'un' THEN 'UN'
+                        WHEN 'kg' THEN 'KG' WHEN 'g' THEN 'G'
+                        WHEN 'litro' THEN 'L' WHEN 'l' THEN 'L'
+                        WHEN 'ml' THEN 'ML' WHEN 'caixa' THEN 'UN'
+                        WHEN 'pacote' THEN 'UN' ELSE upper(unit) END
+                    """
+                )
+            )
             connection.execute(text("CREATE INDEX IF NOT EXISTS ix_products_account_id ON products (account_id)"))
             connection.execute(
                 text("CREATE UNIQUE INDEX IF NOT EXISTS uq_products_account_sku ON products (account_id, sku)")

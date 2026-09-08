@@ -32,6 +32,7 @@ def ensure_default_profiles(db: Session, account_id: int) -> dict[str, Profile]:
     }
     for code, permission_codes in DEFAULT_PROFILE_PERMISSIONS.items():
         profile = profiles.get(code)
+        created = profile is None
         if not profile:
             profile = Profile(
                 account_id=account_id,
@@ -42,7 +43,8 @@ def ensure_default_profiles(db: Session, account_id: int) -> dict[str, Profile]:
             )
             db.add(profile)
             profiles[code] = profile
-        profile.permissions = [permissions[item.value] for item in permission_codes]
+        if created or not profile.permissions:
+            profile.permissions = [permissions[item.value] for item in permission_codes]
     db.flush()
     return profiles
 

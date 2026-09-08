@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Category, Product, Supplier } from "../types";
 import { Button } from "./Button";
+import { PRODUCT_UNITS, calculateMargin } from "../config/products";
 
 interface Props {
   categories: Category[];
@@ -38,7 +39,7 @@ const defaultState: ProductFormState = {
   sale_price: 0,
   stock_quantity: 0,
   minimum_stock: 0,
-  unit: "unidade",
+  unit: "UN",
   active: true,
 };
 
@@ -68,22 +69,24 @@ export function ProductForm({ categories, suppliers, initialValue, onSubmit, onC
     }
   }, [initialValue]);
 
-  const margin = Number(form.sale_price) - Number(form.cost_price);
-  const marginPercent = Number(form.cost_price) > 0 ? (margin / Number(form.cost_price)) * 100 : 0;
+  const { margin, percent: marginPercent } = calculateMargin(Number(form.cost_price), Number(form.sale_price));
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setSaving(true);
-    await onSubmit({
-      ...form,
-      category_id: form.category_id || null,
-      supplier_id: form.supplier_id || null,
-      cost_price: Number(form.cost_price),
-      sale_price: Number(form.sale_price),
-      stock_quantity: Number(form.stock_quantity),
-      minimum_stock: Number(form.minimum_stock),
-    });
-    setSaving(false);
+    try {
+      await onSubmit({
+        ...form,
+        category_id: form.category_id || null,
+        supplier_id: form.supplier_id || null,
+        cost_price: Number(form.cost_price),
+        sale_price: Number(form.sale_price),
+        stock_quantity: Number(form.stock_quantity),
+        minimum_stock: Number(form.minimum_stock),
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -97,7 +100,7 @@ export function ProductForm({ categories, suppliers, initialValue, onSubmit, onC
         <label key={field.name} className="space-y-2 text-sm">
           <span className="text-slate-600">{field.label}</span>
           <input
-            required={field.name !== "barcode"}
+            required={field.name === "name" || field.name === "sku"}
             className="w-full rounded-xl border-stroke bg-white text-brandDeeper"
             value={String((form as Record<string, string | number | boolean>)[field.name] ?? "")}
             onChange={(event) => setForm((current) => ({ ...current, [field.name]: event.target.value }))}
@@ -112,13 +115,7 @@ export function ProductForm({ categories, suppliers, initialValue, onSubmit, onC
           value={form.unit}
           onChange={(event) => setForm((current) => ({ ...current, unit: event.target.value }))}
         >
-          <option value="unidade">Unidade</option>
-          <option value="kg">Quilograma (kg)</option>
-          <option value="g">Grama (g)</option>
-          <option value="litro">Litro</option>
-          <option value="ml">Mililitro (ml)</option>
-          <option value="caixa">Caixa</option>
-          <option value="pacote">Pacote</option>
+          {PRODUCT_UNITS.map((unit) => <option key={unit.value} value={unit.value}>{unit.label}</option>)}
         </select>
       </label>
 
@@ -185,7 +182,7 @@ export function ProductForm({ categories, suppliers, initialValue, onSubmit, onC
 
       <div className="rounded-2xl border border-stroke bg-brand/4 p-4 text-sm md:col-span-2">
         <p>Margem: <span className="font-semibold text-brandStrong">{margin.toFixed(2)}</span></p>
-        <p className="mt-1">Percentual: <span className="font-semibold text-brand">{marginPercent.toFixed(2)}%</span></p>
+        <p className="mt-1">Margem sobre venda: <span className="font-semibold text-brand">{marginPercent.toFixed(2)}%</span></p>
       </div>
 
       <label className="flex items-center gap-3 rounded-2xl border border-stroke bg-brand/4 px-4 py-3 text-sm text-slate-600 md:col-span-2">

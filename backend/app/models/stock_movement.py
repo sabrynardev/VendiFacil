@@ -9,10 +9,14 @@ from app.database.session import Base
 
 class StockMovementType(str, enum.Enum):
     ENTRADA = "entrada"
+    SAIDA = "saida"
     VENDA = "venda"
     AJUSTE = "ajuste"
     PERDA = "perda"
     DEVOLUCAO = "devolucao"
+    CANCELAMENTO = "cancelamento"
+    INVENTARIO = "inventario"
+    COMPRA = "compra"
 
 
 class StockMovement(Base):
@@ -27,6 +31,8 @@ class StockMovement(Base):
     previous_stock: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     new_stock: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reference_type: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    reference_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     account = relationship("Account")

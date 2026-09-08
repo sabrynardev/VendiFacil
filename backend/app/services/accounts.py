@@ -8,13 +8,16 @@ from app.services.profiles import ensure_default_profiles
 
 DEFAULT_ACCOUNT_CATEGORIES = [
     "Bebidas",
+    "Mercearia",
     "Alimentos",
     "Limpeza",
     "Higiene",
     "Frios",
+    "Congelados",
     "Padaria",
     "Hortifruti",
     "Doces",
+    "Pets",
     "Outros",
 ]
 

@@ -54,3 +54,20 @@ def test_sensitive_operations_generate_audit_log(client, auth_headers):
         and entry["action"] == "CREATE"
         for entry in entries.json()
     )
+
+
+def test_profile_permission_update_is_persisted_and_audited(client, auth_headers):
+    profiles = client.get("/profiles", headers=auth_headers).json()
+    stock_profile = next(profile for profile in profiles if profile["code"] == "ESTOQUE")
+    permission_codes = [permission["code"] for permission in stock_profile["permissions"] if permission["code"] != "products.manage"]
+
+    updated = client.put(
+        f"/profiles/{stock_profile['id']}/permissions",
+        headers=auth_headers,
+        json={"permission_codes": permission_codes},
+    )
+    assert updated.status_code == 200, updated.text
+    assert "products.manage" not in {permission["code"] for permission in updated.json()["permissions"]}
+
+    entries = client.get("/audit", headers=auth_headers).json()
+    assert any(entry["entity_type"] == "PROFILE" and entry["action"] == "UPDATE_PERMISSIONS" for entry in entries)

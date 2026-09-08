@@ -14,7 +14,7 @@ from app.schemas.inventory import (
     StockMovementResponse,
 )
 from app.services.audit import log_audit
-from app.services.inventory import inventory_projection, product_status
+from app.services.inventory import StockValidationError, apply_stock_movement, inventory_projection, product_status
 
 router = APIRouter()
 
@@ -92,36 +92,27 @@ def create_movement(
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Produto não encontrado.")
 
-    previous_stock = float(product.stock_quantity)
-    delta = float(payload.quantity)
-    if payload.type in {"perda", "venda"} and previous_stock < delta:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Estoque insuficiente para a movimentação.")
-
-    if payload.type in {"entrada", "devolucao"}:
-        new_stock = previous_stock + delta
-    else:
-        new_stock = previous_stock - delta
-
-    product.stock_quantity = new_stock
-    movement = StockMovement(
-        account_id=current_user.account_id,
-        product_id=product.id,
-        user_id=current_user.id,
-        type=payload.type,
-        quantity=delta,
-        previous_stock=previous_stock,
-        new_stock=new_stock,
-        reason=payload.reason,
-    )
-    db.add(movement)
+    try:
+        movement = apply_stock_movement(
+            db,
+            product=product,
+            user=current_user,
+            movement_type=payload.type,
+            quantity=payload.quantity,
+            target_stock=payload.target_stock,
+            reason=payload.reason,
+            reference_type="manual",
+        )
+    except StockValidationError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     log_audit(
         db,
         current_user,
         action="STOCK_MOVEMENT",
         entity_type="PRODUCT",
         entity_id=product.id,
-        description=f"Registrou {payload.type} de {delta:g} em {product.name}.",
-        changes={"before": previous_stock, "after": new_stock, "reason": payload.reason},
+        description=f"Registrou {payload.type.value} de {float(movement.quantity):g} em {product.name}.",
+        changes={"before": float(movement.previous_stock), "after": float(movement.new_stock), "reason": payload.reason},
     )
     db.commit()
     db.refresh(movement)
@@ -134,6 +125,8 @@ def create_movement(
         type=movement.type,
         user_name=current_user.name,
         reason=movement.reason,
+        reference_type=movement.reference_type,
+        reference_id=movement.reference_id,
         created_at=movement.created_at,
     )
 
@@ -159,6 +152,8 @@ def list_movements(
             type=movement.type,
             user_name=movement.user.name if movement.user else None,
             reason=movement.reason,
+            reference_type=movement.reference_type,
+            reference_id=movement.reference_id,
             created_at=movement.created_at,
         )
         for movement in movements

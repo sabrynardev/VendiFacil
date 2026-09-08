@@ -1,61 +1,64 @@
 # Fase 1 - Fundação do Vendi
 
-## Escopo entregue
+## Implementado
 
-- Perfis por estabelecimento: Administrador, Gerente, Caixa e Estoque.
-- Permissões centralizadas e verificadas no frontend e no backend.
-- Gestão de usuários com criação, edição, ativação, desativação e troca opcional de senha.
-- Proteção contra o administrador desativar ou alterar o próprio perfil.
-- Auditoria multiempresa para usuários, produtos, estoque, fornecedores e vendas.
-- Produto com marca, unidades de medida comerciais e status ativo/inativo.
-- Movimentação de estoque criada para estoque inicial e alteração de saldo pelo cadastro.
-- Fornecedor com status e arquivamento seguro quando possui produtos vinculados.
-- Correção das consultas de lucro e itens vendidos no relatório.
+- Produtos persistidos por estabelecimento, com marca, descrição, categoria, fornecedor, SKU, código de barras, custo, venda, estoque mínimo, status e datas.
+- Unidades centralizadas em `UN`, `KG`, `G`, `L` e `ML`; produtos `UN` rejeitam quantidades fracionadas.
+- SKU e código de barras únicos por estabelecimento, com mensagens amigáveis.
+- Margem unitária e margem sobre venda calculadas por regra central usando `Decimal` no backend.
+- Busca por nome, SKU ou código de barras e filtros por categoria, situação e estoque baixo.
+- Categorias com listagem, criação, edição e exclusão protegida quando existem produtos vinculados.
+- Serviço único de estoque para validar, atualizar saldo e registrar histórico com origem opcional.
+- Tipos preparados: entrada, saída, ajuste, venda, cancelamento, perda, inventário, compra e devolução.
+- Perfis Administrador, Gerente, Caixa e Estoque, permissões centralizadas e proteção no backend.
+- Gestão de usuários, inativação segura, alteração de perfil e senhas com hash.
+- Auditoria para produtos, categorias, estoque, usuários, perfis/permissões, fornecedores e vendas.
 
-## Banco de dados
+## Banco
 
-Novas tabelas:
+Tabelas da fundação: `permissions`, `profiles`, `profile_permissions`, `audit_logs` e `stock_movements`.
 
-- `permissions`
-- `profiles`
-- `profile_permissions`
-- `audit_logs`
+Campos incrementais: `users.profile_id`, `products.brand`, `suppliers.active`, `stock_movements.reference_type` e `stock_movements.reference_id`.
 
-Novas colunas:
+A inicialização aplica a migração SQLite sem apagar dados, associa usuários antigos aos perfis e converte unidades legadas para o padrão atual.
 
-- `users.profile_id`
-- `products.brand`
-- `suppliers.active`
+## API
 
-A inicialização aplica a migração SQLite de forma incremental e associa usuários existentes aos perfis equivalentes. Dados de contas, produtos e vendas existentes são preservados.
+- `GET /products`: aceita `search`, `category_id`, `status` e `low_stock`.
+- `GET /products/barcode/{code}`: localiza por código de barras, SKU ou nome.
+- `POST /products`, `PUT /products/{id}` e `DELETE /products/{id}`: CRUD protegido, validação e inativação segura.
+- `GET /categories`, `POST /categories`, `PUT /categories/{id}` e `DELETE /categories/{id}`.
+- `POST /inventory/movement` e `GET /inventory/movements`: movimentação e histórico rastreável.
+- `GET /profiles` e `PUT /profiles/{id}/permissions`: consulta e alteração auditada de permissões.
+- `GET /users`, `POST /users`, `PUT /users/{id}` e `GET /audit`.
 
-## APIs
+## Permissões
 
-- `GET /profiles`: perfis disponíveis para gestão da equipe.
-- `GET /users`: usuários da conta atual.
-- `POST /users`: cria um usuário na conta atual.
-- `PUT /users/{id}`: altera usuário, perfil, status ou senha.
-- `GET /audit`: lista até 200 eventos da conta atual e aceita filtro por `entity_type`.
-- `GET /auth/me`: agora retorna `profile_name` e `permissions`.
+- Administrador: acesso completo; permissões do perfil são protegidas contra remoção acidental.
+- Gerente: operação, produtos, estoque, fornecedores, vendas, relatórios e auditoria.
+- Caixa: somente PDV e consulta operacional de produtos; mutações gerenciais retornam `403`.
+- Estoque: produtos, categorias, fornecedores e movimentações, sem administração de usuários.
 
-## Regras principais
+## Testes
 
-- Administrador possui todas as permissões.
-- Gerente acessa operação e gestão, mas não administra usuários.
-- Caixa acessa o PDV e a consulta de produtos necessária à venda.
-- Estoque gerencia produtos, fornecedores e movimentações.
-- A API valida permissões mesmo quando uma rota é acessada diretamente.
-- Registros de auditoria nunca são misturados entre estabelecimentos.
+A suíte cobre autenticação, venda, produtos, exclusão/inativação, conflitos de SKU e código de barras, filtros, margem, unidades, estoque, categorias, permissões e auditoria.
+
+Resultado: `19 passed`.
 
 ## Teste manual
 
-1. Entre como Administrador e abra `Equipe` na barra lateral.
-2. Cadastre um usuário Caixa e confirme que ele aparece como ativo.
-3. Saia, entre com o novo Caixa e confirme que somente o PDV aparece.
-4. Entre novamente como Administrador e edite um produto, preenchendo a marca.
-5. Abra `Auditoria` e confirme os eventos de criação do usuário e alteração do produto.
-6. Abra `Relatórios` e alterne os períodos para validar os indicadores.
+1. Entre como Administrador e abra `Produtos`.
+2. Pesquise por nome ou SKU e teste categoria, situação e estoque baixo.
+3. Cadastre um produto e confirme as unidades e a margem sobre venda.
+4. Tente repetir o SKU ou código de barras e confira a mensagem amigável.
+5. Abra `Categorias`, crie e edite uma categoria; uma categoria vinculada não poderá ser excluída.
+6. Altere o estoque de um produto e confira o registro em `Estoque` e `Auditoria`.
+7. Em `Equipe`, crie um Caixa e confirme que ações administrativas são bloqueadas.
 
-## Próxima etapa
+## Pendências
 
-A Fase 2 deve evoluir PDV, pagamentos, abertura e fechamento de caixa, vendas em espera e cancelamento com estorno de estoque, usando as permissões e a auditoria entregues aqui.
+Nenhuma pendência bloqueante na Fase 1. As advertências de depreciação do Pydantic e do evento de startup podem ser tratadas em manutenção futura sem alterar o comportamento.
+
+## Próxima fase
+
+**FASE 2 - Operação: PDV + Pagamentos + Caixa + Estoque.**

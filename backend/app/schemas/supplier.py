@@ -24,6 +24,8 @@ class SupplierUpdate(SupplierBase):
 
 class SupplierResponse(SupplierBase):
     id: int
+    # Instalações antigas podem conter domínios locais usados nos dados de demonstração.
+    email: str | None = None
     created_at: datetime
     products_count: int = 0
 

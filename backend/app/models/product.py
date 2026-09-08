@@ -22,7 +22,7 @@ class Product(Base):
     sale_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False, default=0)
     stock_quantity: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False, default=0)
     minimum_stock: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False, default=0)
-    unit: Mapped[str] = mapped_column(String(30), nullable=False, default="unidade")
+    unit: Mapped[str] = mapped_column(String(30), nullable=False, default="UN")
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

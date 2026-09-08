@@ -1,5 +1,5 @@
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useDeferredValue, useState } from "react";
 import { Badge } from "../components/Badge";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
@@ -15,34 +15,54 @@ import { formatCurrency } from "../utils/format";
 
 export function ProductsPage() {
   const toast = useToast();
+  const [search, setSearch] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [statusFilter, setStatusFilter] = useState("active");
+  const [lowStock, setLowStock] = useState(false);
+  const deferredSearch = useDeferredValue(search);
   const { data, loading, setData } = useAsync(async () => {
     const [products, categories, suppliers] = await Promise.all([
-      catalogService.listProducts(),
+      catalogService.listProducts({
+        search: deferredSearch || undefined,
+        category_id: categoryId ? Number(categoryId) : undefined,
+        status: statusFilter,
+        low_stock: lowStock || undefined,
+      }),
       catalogService.listCategories(),
       catalogService.listSuppliers(),
     ]);
     return { products, categories, suppliers };
-  }, []);
+  }, [deferredSearch, categoryId, statusFilter, lowStock]);
   const [editing, setEditing] = useState<Product | null>(null);
   const [open, setOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   async function refresh() {
-    const products = await catalogService.listProducts();
+    const products = await catalogService.listProducts({
+      search: deferredSearch || undefined,
+      category_id: categoryId ? Number(categoryId) : undefined,
+      status: statusFilter,
+      low_stock: lowStock || undefined,
+    });
     setData((current) => (current ? { ...current, products } : current));
   }
 
   async function handleSubmit(payload: Record<string, unknown>) {
-    if (editing) {
-      await catalogService.updateProduct(editing.id, payload);
-      toast.push("Produto atualizado com sucesso.");
-    } else {
-      await catalogService.createProduct(payload);
-      toast.push("Produto criado com sucesso.");
+    try {
+      if (editing) {
+        await catalogService.updateProduct(editing.id, payload);
+        toast.push("Produto atualizado com sucesso.");
+      } else {
+        await catalogService.createProduct(payload);
+        toast.push("Produto criado com sucesso.");
+      }
+      await refresh();
+      setOpen(false);
+      setEditing(null);
+    } catch (error) {
+      toast.push(error instanceof Error ? error.message : "Não foi possível salvar o produto.", "error");
+      throw error;
     }
-    await refresh();
-    setOpen(false);
-    setEditing(null);
   }
 
   async function handleDelete(product: Product) {
@@ -71,6 +91,36 @@ export function ProductsPage() {
           Novo produto
         </Button>
       </div>
+      <Card className="grid gap-4 md:grid-cols-4">
+        <label className="space-y-2 text-sm md:col-span-2">
+          <span className="text-slate-600">Buscar produto</span>
+          <input
+            className="w-full rounded-xl border-stroke bg-white text-brandDeeper"
+            placeholder="Nome, SKU ou código de barras"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </label>
+        <label className="space-y-2 text-sm">
+          <span className="text-slate-600">Categoria</span>
+          <select className="w-full rounded-xl border-stroke bg-white text-brandDeeper" value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
+            <option value="">Todas</option>
+            {data?.categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+          </select>
+        </label>
+        <label className="space-y-2 text-sm">
+          <span className="text-slate-600">Situação</span>
+          <select className="w-full rounded-xl border-stroke bg-white text-brandDeeper" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+            <option value="active">Ativos</option>
+            <option value="inactive">Inativos</option>
+            <option value="all">Todos</option>
+          </select>
+        </label>
+        <label className="flex items-center gap-3 text-sm text-slate-600 md:col-span-4">
+          <input type="checkbox" checked={lowStock} onChange={(event) => setLowStock(event.target.checked)} />
+          Mostrar somente estoque baixo
+        </label>
+      </Card>
       <Card>
         {loading || !data ? (
           <p className="text-sm text-slate-500">Carregando produtos...</p>

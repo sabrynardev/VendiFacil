@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import require_any_permission, require_permission
@@ -12,6 +13,8 @@ from app.models.supplier import Supplier
 from app.models.user import User
 from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate
 from app.services.audit import log_audit
+from app.services.inventory import StockValidationError, apply_stock_movement
+from app.services.products import ProductConflictError, validate_unique_identifiers
 
 router = APIRouter()
 
@@ -48,15 +51,26 @@ def validate_relationships(db: Session, account_id: int, category_id: int | None
 
 @router.get("", response_model=list[ProductResponse])
 def list_products(
+    search: str | None = Query(default=None, max_length=160),
+    category_id: int | None = None,
+    product_status: str = Query(default="active", alias="status", pattern="^(active|inactive|all)$"),
+    low_stock: bool = False,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_any_permission(PermissionCode.PRODUCTS_VIEW, PermissionCode.CASHIER_OPERATE)),
 ):
-    products = (
-        db.query(Product)
-        .filter(Product.account_id == current_user.account_id, Product.active.is_(True))
-        .order_by(Product.name.asc())
-        .all()
-    )
+    query = db.query(Product).filter(Product.account_id == current_user.account_id)
+    if product_status == "active":
+        query = query.filter(Product.active.is_(True))
+    elif product_status == "inactive":
+        query = query.filter(Product.active.is_(False))
+    if search and search.strip():
+        term = f"%{search.strip()}%"
+        query = query.filter(or_(Product.name.ilike(term), Product.sku.ilike(term), Product.barcode.ilike(term)))
+    if category_id is not None:
+        query = query.filter(Product.category_id == category_id)
+    if low_stock:
+        query = query.filter(Product.stock_quantity <= Product.minimum_stock)
+    products = query.order_by(Product.name.asc()).all()
     return [serialize_product(product) for product in products]
 
 
@@ -88,7 +102,7 @@ def get_product(
 ):
     product = (
         db.query(Product)
-        .filter(Product.id == product_id, Product.account_id == current_user.account_id, Product.active.is_(True))
+        .filter(Product.id == product_id, Product.account_id == current_user.account_id)
         .first()
     )
     if not product:
@@ -103,21 +117,27 @@ def create_product(
     current_user: User = Depends(require_permission(PermissionCode.PRODUCTS_MANAGE)),
 ):
     validate_relationships(db, current_user.account_id, payload.category_id, payload.supplier_id)
-    product = Product(account_id=current_user.account_id, **payload.model_dump())
+    try:
+        validate_unique_identifiers(
+            db, account_id=current_user.account_id, sku=payload.sku, barcode=payload.barcode
+        )
+    except ProductConflictError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    product_data = payload.model_dump()
+    initial_stock = float(product_data.pop("stock_quantity"))
+    product = Product(account_id=current_user.account_id, stock_quantity=0, **product_data)
     db.add(product)
     db.flush()
-    if float(product.stock_quantity) > 0:
-        db.add(
-            StockMovement(
-                account_id=current_user.account_id,
-                product_id=product.id,
-                user_id=current_user.id,
-                type=StockMovementType.ENTRADA,
-                quantity=float(product.stock_quantity),
-                previous_stock=0,
-                new_stock=float(product.stock_quantity),
-                reason="Estoque inicial",
-            )
+    if initial_stock > 0:
+        apply_stock_movement(
+            db,
+            product=product,
+            user=current_user,
+            movement_type=StockMovementType.ENTRADA,
+            quantity=initial_stock,
+            reason="Estoque inicial",
+            reference_type="product",
+            reference_id=product.id,
         )
     log_audit(
         db,
@@ -141,31 +161,44 @@ def update_product(
 ):
     product = (
         db.query(Product)
-        .filter(Product.id == product_id, Product.account_id == current_user.account_id, Product.active.is_(True))
+        .filter(Product.id == product_id, Product.account_id == current_user.account_id)
         .first()
     )
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Produto não encontrado.")
     validate_relationships(db, current_user.account_id, payload.category_id, payload.supplier_id)
+    try:
+        validate_unique_identifiers(
+            db,
+            account_id=current_user.account_id,
+            sku=payload.sku,
+            barcode=payload.barcode,
+            exclude_product_id=product.id,
+        )
+    except ProductConflictError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     tracked_fields = ["name", "brand", "sku", "barcode", "cost_price", "sale_price", "stock_quantity", "minimum_stock", "unit", "active"]
     before = {field: str(getattr(product, field)) for field in tracked_fields}
     previous_stock = float(product.stock_quantity)
-    for field, value in payload.model_dump().items():
+    update_data = payload.model_dump()
+    requested_stock = float(update_data.pop("stock_quantity"))
+    for field, value in update_data.items():
         setattr(product, field, value)
-    new_stock = float(product.stock_quantity)
-    if previous_stock != new_stock:
-        db.add(
-            StockMovement(
-                account_id=current_user.account_id,
-                product_id=product.id,
-                user_id=current_user.id,
-                type=StockMovementType.AJUSTE,
-                quantity=abs(new_stock - previous_stock),
-                previous_stock=previous_stock,
-                new_stock=new_stock,
+    if previous_stock != requested_stock:
+        try:
+            apply_stock_movement(
+                db,
+                product=product,
+                user=current_user,
+                movement_type=StockMovementType.AJUSTE,
+                quantity=abs(requested_stock - previous_stock),
+                target_stock=requested_stock,
                 reason="Alteração no cadastro do produto",
+                reference_type="product",
+                reference_id=product.id,
             )
-        )
+        except StockValidationError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     after = {field: str(getattr(product, field)) for field in tracked_fields}
     changes = {field: {"before": before[field], "after": after[field]} for field in tracked_fields if before[field] != after[field]}
     log_audit(

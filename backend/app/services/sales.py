@@ -2,9 +2,10 @@ from sqlalchemy.orm import Session
 
 from app.models.product import Product
 from app.models.sale import Sale, SaleItem
-from app.models.stock_movement import StockMovement, StockMovementType
+from app.models.stock_movement import StockMovementType
 from app.models.user import User
 from app.schemas.sale import SaleCreate
+from app.services.inventory import StockValidationError, apply_stock_movement
 
 
 class SaleValidationError(Exception):
@@ -78,10 +79,6 @@ def create_sale(db: Session, payload: SaleCreate, user: User) -> Sale:
 
         for prepared_item in prepared_items:
             product = prepared_item["product"]
-            previous_stock = float(product.stock_quantity)
-            new_stock = round(previous_stock - prepared_item["quantity"], 2)
-            product.stock_quantity = new_stock
-
             sale_item = SaleItem(
                 sale_id=sale.id,
                 product_id=product.id,
@@ -92,21 +89,23 @@ def create_sale(db: Session, payload: SaleCreate, user: User) -> Sale:
             )
             db.add(sale_item)
 
-            movement = StockMovement(
-                account_id=user.account_id,
-                product_id=product.id,
-                user_id=user.id,
-                type=StockMovementType.VENDA,
+            apply_stock_movement(
+                db,
+                product=product,
+                user=user,
+                movement_type=StockMovementType.VENDA,
                 quantity=prepared_item["quantity"],
-                previous_stock=previous_stock,
-                new_stock=new_stock,
                 reason=f"Venda #{sale.id}",
+                reference_type="sale",
+                reference_id=sale.id,
             )
-            db.add(movement)
 
         db.commit()
         db.refresh(sale)
         return sale
+    except StockValidationError as exc:
+        db.rollback()
+        raise SaleValidationError(str(exc)) from exc
     except Exception:
         db.rollback()
         raise

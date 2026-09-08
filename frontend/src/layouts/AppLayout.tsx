@@ -1,4 +1,4 @@
-import { BarChart3, Boxes, ClipboardList, Cog, LayoutDashboard, LogOut, Menu, PackageSearch, ReceiptText, ShoppingCart, Truck, Users } from "lucide-react";
+import { BarChart3, Boxes, ClipboardList, Cog, LayoutDashboard, ListTree, LogOut, Menu, PackageSearch, ReceiptText, ShoppingCart, Truck, Users } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { brand } from "../config/brand";
@@ -8,6 +8,7 @@ const links = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, permission: "dashboard.view" },
   { to: "/cashier", label: "Caixa", icon: ShoppingCart, permission: "cashier.operate" },
   { to: "/products", label: "Produtos", icon: PackageSearch, permission: "products.view" },
+  { to: "/categories", label: "Categorias", icon: ListTree, permission: "products.manage" },
   { to: "/inventory", label: "Estoque", icon: Boxes, permission: "inventory.view" },
   { to: "/sales", label: "Vendas", icon: ReceiptText, permission: "sales.view" },
   { to: "/suppliers", label: "Fornecedores", icon: Truck, permission: "suppliers.view" },

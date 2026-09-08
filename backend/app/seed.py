@@ -115,7 +115,7 @@ def seed_database(db: Session):
                     sale_price=sale_price,
                     stock_quantity=stock,
                     minimum_stock=minimum_stock,
-                    unit="unidade",
+                    unit="UN",
                     active=True,
                 )
             )
