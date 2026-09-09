@@ -43,4 +43,8 @@ export const classByStatus: Record<string, string> = {
   VENCIDA: "bg-rose-100 text-rose-700",
   BLOQUEADO: "bg-rose-100 text-rose-700",
   LIBERADO: "bg-emerald-100 text-emerald-700",
+  CRITICO: "bg-rose-100 text-rose-700",
+  IMPORTANTE: "bg-amber-100 text-amber-700",
+  ATENCAO: "bg-blue-100 text-blue-700",
+  INFORMATIVO: "bg-slate-100 text-slate-700",
 };

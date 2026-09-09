@@ -13,6 +13,8 @@ const CategoriesPage = lazy(() => import("./pages/CategoriesPage").then((module)
 const AuditPage = lazy(() => import("./pages/AuditPage").then((module) => ({ default: module.AuditPage })));
 const DashboardPage = lazy(() => import("./pages/DashboardPage").then((module) => ({ default: module.DashboardPage })));
 const InventoryPage = lazy(() => import("./pages/InventoryPage").then((module) => ({ default: module.InventoryPage })));
+const IntelligencePage = lazy(() => import("./pages/IntelligencePage").then((module) => ({ default: module.IntelligencePage })));
+const AskVendiPage = lazy(() => import("./pages/AskVendiPage").then((module) => ({ default: module.AskVendiPage })));
 const InventoryCountsPage = lazy(() => import("./pages/InventoryCountsPage").then((module) => ({ default: module.InventoryCountsPage })));
 const LotsPage = lazy(() => import("./pages/LotsPage").then((module) => ({ default: module.LotsPage })));
 const PurchasesPage = lazy(() => import("./pages/PurchasesPage").then((module) => ({ default: module.PurchasesPage })));
@@ -89,6 +91,8 @@ export default function App() {
               <Route path="customers" element={<PermissionRoute permission="customers.view"><CustomersPage /></PermissionRoute>} />
               <Route path="financial" element={<PermissionRoute permission="financial.view"><FinancialPage /></PermissionRoute>} />
               <Route path="reports" element={<PermissionRoute permission="reports.view"><ReportsPage /></PermissionRoute>} />
+              <Route path="intelligence" element={<PermissionRoute permission="intelligence.view"><IntelligencePage /></PermissionRoute>} />
+              <Route path="ask-vendi" element={<PermissionRoute permission="assistant.ask"><AskVendiPage /></PermissionRoute>} />
               <Route path="users" element={<PermissionRoute permission="users.manage"><UsersPage /></PermissionRoute>} />
               <Route path="audit" element={<PermissionRoute permission="audit.view"><AuditPage /></PermissionRoute>} />
               <Route path="settings" element={<PermissionRoute permission="settings.view"><SettingsPage /></PermissionRoute>} />

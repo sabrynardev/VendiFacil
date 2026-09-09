@@ -1,4 +1,4 @@
-import { BarChart3, Boxes, ClipboardCheck, ClipboardList, Cog, LayoutDashboard, ListTree, LogOut, Menu, PackageSearch, ReceiptText, ShoppingBasket, ShoppingCart, Tags, Truck, UserRound, Users, WalletCards } from "lucide-react";
+import { BarChart3, Boxes, BrainCircuit, ClipboardCheck, ClipboardList, Cog, LayoutDashboard, ListTree, LogOut, Menu, MessageCircle, PackageSearch, ReceiptText, ShoppingBasket, ShoppingCart, Tags, Truck, UserRound, Users, WalletCards } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { brand } from "../config/brand";
@@ -19,6 +19,8 @@ const links = [
   { to: "/customers", label: "Clientes e fiado", icon: UserRound, permission: "customers.view" },
   { to: "/financial", label: "Financeiro", icon: WalletCards, permission: "financial.view" },
   { to: "/reports", label: "Relatórios", icon: BarChart3, permission: "reports.view" },
+  { to: "/intelligence", label: "Vendi Inteligente", icon: BrainCircuit, permission: "intelligence.view" },
+  { to: "/ask-vendi", label: "Pergunte ao Vendi", icon: MessageCircle, permission: "assistant.ask" },
   { to: "/users", label: "Equipe", icon: Users, permission: "users.manage" },
   { to: "/audit", label: "Auditoria", icon: ClipboardList, permission: "audit.view" },
   { to: "/settings", label: "Configurações", icon: Cog, permission: "settings.view" },
@@ -31,7 +33,7 @@ export function AppLayout() {
   const roleLabel = user?.profile_name ?? "Usuário";
 
   const navigation = (
-    <nav className="mt-8 space-y-2">
+    <nav className="mt-8 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
       {links.filter((link) => user?.permissions.includes(link.permission)).map((link) => {
         const Icon = link.icon;
         return (

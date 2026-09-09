@@ -44,6 +44,8 @@ O módulo da Fase 4, com contas, fluxo de caixa, CMV, lucro e fechamento gerenci
 
 O módulo da Fase 5, com dashboard gerencial, Curva ABC, margens, estoque parado, fiado, fornecedores, perdas e exportação CSV, está documentado em [docs/phase-5-analytics.md](docs/phase-5-analytics.md).
 
+O módulo da Fase 6, com previsão de reposição, central de insights e Pergunte ao Vendi em modo seguro e determinístico, está documentado em [docs/phase-6-intelligence.md](docs/phase-6-intelligence.md).
+
 ## Por que este projeto é forte para portfólio
 
 - Resolve um problema real de operação comercial, em vez de ser apenas um CRUD genérico

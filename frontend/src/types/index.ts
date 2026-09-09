@@ -594,3 +594,50 @@ export interface AnalyticsOverview {
   };
   expenses: Array<{ category: string; type: string; amount: number }>;
 }
+
+export interface IntelligenceProduct extends AnalyticsProduct {
+  window_days: number;
+  sale_events: number;
+  history_sufficient: boolean;
+  lead_time_days?: number | null;
+  safety_stock?: number | null;
+  reorder_point?: number | null;
+  suggested_quantity?: number | null;
+  explanation: string;
+  suppliers: Array<{ id: number; name: string; price?: number | null; lead_time_days?: number | null; preferred: boolean }>;
+  seasonality?: { pattern: string; weekday_average: number; weekend_average: number } | null;
+}
+
+export interface VendiInsight {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  priority: "INFORMATIVO" | "ATENCAO" | "IMPORTANTE" | "CRITICO";
+  category: string;
+  entity_type?: string | null;
+  entity_id?: number | null;
+  period: { start: string; end: string };
+  calculated_at: string;
+  explanation: string;
+  data: Record<string, unknown>;
+  action?: { label: string; path: string } | null;
+}
+
+export interface IntelligenceOverview {
+  period: { start: string; end: string; previous_start: string; previous_end: string };
+  calculated_at: string;
+  forecast: { period: { start: string; end: string; window_days: number }; products: IntelligenceProduct[] };
+  insights: VendiInsight[];
+}
+
+export interface AskVendiResponse {
+  answer: string;
+  intent: string;
+  tool: string;
+  blocked: boolean;
+  period: { start: string; end: string };
+  sources: string[];
+  provider: string;
+  read_only: boolean;
+}

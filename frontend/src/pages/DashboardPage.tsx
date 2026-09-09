@@ -7,9 +7,17 @@ import { PeriodFilter, periodDates } from "../components/PeriodFilter";
 import { useAuth } from "../contexts/AuthContext";
 import { useAsync } from "../hooks/useAsync";
 import { analyticsService } from "../services/analytics";
+import { intelligenceService } from "../services/intelligence";
 import { dashboardService } from "../services/dashboard";
 import { formatCurrency } from "../utils/format";
 import { useState } from "react";
+import { Link } from "react-router-dom";
+
+function DashboardInsights({ start, end }: { start: string; end: string }) {
+  const { data } = useAsync(() => intelligenceService.insights(start, end), [start, end]);
+  if (!data?.insights.length) return null;
+  return <Card><div className="flex items-center justify-between"><div><p className="text-xs uppercase tracking-[0.25em] text-brand">Atenção hoje</p><h2 className="mt-2 text-lg font-semibold">Prioridades do Vendi Inteligente</h2></div><Link className="text-sm font-medium text-brand" to="/intelligence">Ver todos</Link></div><div className="mt-4 grid gap-3 lg:grid-cols-3">{data.insights.slice(0, 3).map(item => <div key={item.id} className="rounded-2xl border border-stroke bg-brand/4 p-4"><Badge label={item.priority}/><p className="mt-3 font-medium">{item.title}</p><p className="mt-2 text-sm leading-5 text-slate-600">{item.message}</p></div>)}</div></Card>;
+}
 
 const paymentColors = ["#011C6B", "#01258F", "#0231BD", "#023BE6"];
 
@@ -22,7 +30,7 @@ function AnalyticsDashboard() {
   <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">{[["Faturamento",data.summary.revenue],["Lucro bruto",data.summary.gross_profit],["Resultado estimado",data.summary.estimated_result],["Fiado pendente",data.credit.open_total]].map(([label,value])=><Card key={String(label)}><p className="text-sm text-slate-500">{label}</p><p className="mt-2 text-3xl font-semibold">{formatCurrency(Number(value))}</p></Card>)}</div>
   <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><Card><p className="text-sm text-slate-500">Vendas</p><p className="mt-2 text-3xl font-semibold">{data.summary.sales_count}</p></Card><Card><p className="text-sm text-slate-500">Ticket médio</p><p className="mt-2 text-3xl font-semibold">{formatCurrency(data.summary.average_ticket)}</p></Card><Card><p className="text-sm text-slate-500">CMV</p><p className="mt-2 text-3xl font-semibold">{formatCurrency(data.summary.cmv)}</p></Card><Card><p className="text-sm text-slate-500">Margem bruta</p><p className="mt-2 text-3xl font-semibold">{data.summary.gross_margin.toFixed(2)}%</p></Card></div>
   <div className="grid gap-6 xl:grid-cols-3"><Card className="xl:col-span-2"><h2 className="text-lg font-semibold">Evolução do faturamento</h2>{data.sales.timeline.every(item=>!item.revenue)?<EmptyState title="Sem vendas no período" description="Escolha outro período ou registre novas vendas."/>:<div className="mt-5 flex h-64 items-end gap-2 overflow-x-auto">{data.sales.timeline.map(item=><div key={item.date} className="flex h-full min-w-10 flex-1 flex-col justify-end" title={`${item.date}: ${formatCurrency(item.revenue)}`}><div className="rounded-t-xl bg-[linear-gradient(180deg,#023BE6_0%,#011C6B_100%)]" style={{height:`${Math.max(item.revenue/max*100,3)}%`}}/><p className="mt-2 text-center text-[10px] text-slate-500">{item.date.slice(8)}</p></div>)}</div>}</Card><Card><h2 className="text-lg font-semibold">Produtos de maior impacto</h2>{!data.products.top_profit.length?<EmptyState title="Sem dados" description="O ranking aparecerá após as vendas."/>:<div className="mt-4 space-y-3">{data.products.top_profit.slice(0,5).map((item,index)=><div key={item.product_id} className="flex justify-between rounded-2xl bg-brand/5 p-3 text-sm"><span>{index+1}. {item.product}</span><strong>{formatCurrency(item.profit)}</strong></div>)}</div>}</Card></div>
-  <div className="grid gap-6 lg:grid-cols-3"><Card><p className="text-sm text-slate-500">Estoque a custo</p><p className="mt-2 text-2xl font-semibold">{formatCurrency(data.products.inventory.cost_value)}</p></Card><Card><p className="text-sm text-slate-500">Produtos parados</p><p className="mt-2 text-2xl font-semibold">{data.products.stopped.length}</p></Card><Card><p className="text-sm text-slate-500">Fiado vencido</p><p className="mt-2 text-2xl font-semibold text-rose-600">{formatCurrency(data.credit.overdue_total)}</p></Card></div></div>;
+  <div className="grid gap-6 lg:grid-cols-3"><Card><p className="text-sm text-slate-500">Estoque a custo</p><p className="mt-2 text-2xl font-semibold">{formatCurrency(data.products.inventory.cost_value)}</p></Card><Card><p className="text-sm text-slate-500">Produtos parados</p><p className="mt-2 text-2xl font-semibold">{data.products.stopped.length}</p></Card><Card><p className="text-sm text-slate-500">Fiado vencido</p><p className="mt-2 text-2xl font-semibold text-rose-600">{formatCurrency(data.credit.overdue_total)}</p></Card></div><DashboardInsights start={start} end={end}/></div>;
 }
 
 function OperationalDashboard() {

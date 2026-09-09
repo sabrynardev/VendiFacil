@@ -14,6 +14,14 @@ class Settings(BaseSettings):
     seed_admin_email: str = "admin@marketpulse.dev"
     seed_admin_password: str = "admin123"
     auto_seed: bool = True
+    intelligence_default_window_days: int = 30
+    intelligence_safety_stock_days: int = 2
+    intelligence_purchase_horizon_days: int = 7
+    intelligence_cost_alert_percent: float = 5.0
+    intelligence_stopped_days: int = 30
+    intelligence_assistant_enabled: bool = True
+    ai_provider: str = "disabled"
+    ai_api_key: str | None = None
 
     model_config = SettingsConfigDict(
         env_file=".env",

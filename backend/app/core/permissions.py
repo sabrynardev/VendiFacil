@@ -44,6 +44,8 @@ class PermissionCode(StrEnum):
     REPORT_CUSTOMERS = "report.customers"
     REPORT_SUPPLIERS = "report.suppliers"
     REPORT_EXPORT = "report.export"
+    INTELLIGENCE_VIEW = "intelligence.view"
+    ASSISTANT_ASK = "assistant.ask"
     REPORTS_VIEW = "reports.view"
     PROFIT_VIEW = "profit.view"
     USERS_MANAGE = "users.manage"
@@ -94,6 +96,8 @@ PERMISSION_LABELS = {
     PermissionCode.REPORT_CUSTOMERS: ("Relatórios de clientes e fiado", "Relatórios"),
     PermissionCode.REPORT_SUPPLIERS: ("Relatórios de fornecedores", "Relatórios"),
     PermissionCode.REPORT_EXPORT: ("Exportar relatórios", "Relatórios"),
+    PermissionCode.INTELLIGENCE_VIEW: ("Visualizar Vendi Inteligente", "Inteligência"),
+    PermissionCode.ASSISTANT_ASK: ("Consultar Pergunte ao Vendi", "Inteligência"),
     PermissionCode.REPORTS_VIEW: ("Visualizar relatórios", "Relatórios"),
     PermissionCode.PROFIT_VIEW: ("Visualizar lucro", "Financeiro"),
     PermissionCode.USERS_MANAGE: ("Gerenciar funcionários", "Equipe"),
@@ -147,6 +151,8 @@ DEFAULT_PROFILE_PERMISSIONS = {
         PermissionCode.REPORT_CUSTOMERS,
         PermissionCode.REPORT_SUPPLIERS,
         PermissionCode.REPORT_EXPORT,
+        PermissionCode.INTELLIGENCE_VIEW,
+        PermissionCode.ASSISTANT_ASK,
         PermissionCode.REPORTS_VIEW,
         PermissionCode.PROFIT_VIEW,
         PermissionCode.AUDIT_VIEW,
@@ -160,6 +166,7 @@ DEFAULT_PROFILE_PERMISSIONS = {
         PermissionCode.CUSTOMERS_VIEW,
         PermissionCode.CREDIT_SELL,
         PermissionCode.CREDIT_RECEIVE,
+        PermissionCode.ASSISTANT_ASK,
     ],
     "ESTOQUE": [
         PermissionCode.DASHBOARD_VIEW,
@@ -174,5 +181,7 @@ DEFAULT_PROFILE_PERMISSIONS = {
         PermissionCode.LOTS_VIEW,
         PermissionCode.LOTS_MANAGE,
         PermissionCode.INVENTORY_COUNT,
+        PermissionCode.INTELLIGENCE_VIEW,
+        PermissionCode.ASSISTANT_ASK,
     ],
 }

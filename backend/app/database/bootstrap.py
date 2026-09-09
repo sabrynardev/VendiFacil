@@ -257,6 +257,7 @@ def ensure_multitenant_schema(engine: Engine) -> None:
             "inventory_losses": ["CREATE INDEX IF NOT EXISTS ix_inventory_losses_period ON inventory_losses (account_id, created_at)"],
             "supplier_price_history": ["CREATE INDEX IF NOT EXISTS ix_supplier_prices_period ON supplier_price_history (account_id, product_id, supplier_id, recorded_at)"],
             "payable_payments": ["CREATE INDEX IF NOT EXISTS ix_payable_payments_period ON payable_payments (account_id, payment_date)"],
+            "assistant_query_logs": ["CREATE INDEX IF NOT EXISTS ix_assistant_query_account_period ON assistant_query_logs (account_id, created_at)"],
         }
         for table_name, statements in analytics_indexes.items():
             if table_name in inspector.get_table_names():
