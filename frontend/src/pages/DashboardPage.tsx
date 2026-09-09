@@ -22,7 +22,7 @@ function DashboardInsights({ start, end }: { start: string; end: string }) {
 const paymentColors = ["#011C6B", "#01258F", "#0231BD", "#023BE6"];
 
 function AnalyticsDashboard() {
-  const initial = periodDates("7d"); const [start,setStart]=useState(initial[0]); const [end,setEnd]=useState(initial[1]);
+  const initial = periodDates("30d"); const [start,setStart]=useState(initial[0]); const [end,setEnd]=useState(initial[1]);
   const {data,loading}=useAsync(()=>analyticsService.overview(start,end),[start,end]);
   if(loading||!data)return <div className="space-y-6"><Skeleton className="h-28 w-full"/><Skeleton className="h-80"/></div>;
   const max=Math.max(...data.sales.timeline.map(item=>item.revenue),1);

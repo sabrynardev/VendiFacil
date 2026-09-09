@@ -19,3 +19,4 @@ Thumbs.db
 *.log
 *.tsbuildinfo
 backups/
+.screenshot-profile/
