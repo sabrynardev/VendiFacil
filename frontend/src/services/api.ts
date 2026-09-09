@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 type Primitive = string | number | boolean;
 type QueryValue = Primitive | null | undefined;
@@ -11,7 +11,7 @@ interface ApiResponse<T> {
   data: T;
 }
 
-class ApiError extends Error {
+export class ApiError extends Error {
   response: { data: unknown; status: number };
 
   constructor(message: string, status: number, data: unknown) {
@@ -55,6 +55,9 @@ function getErrorDetail(data: unknown) {
   if (typeof detail === "string") {
     return detail;
   }
+  if (typeof detail === "object" && detail !== null && "message" in detail && typeof detail.message === "string") {
+    return detail.message;
+  }
 
   if (Array.isArray(detail)) {
     const messages = detail
@@ -72,7 +75,10 @@ function getErrorDetail(data: unknown) {
 async function request<T>(method: string, path: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
   const token = localStorage.getItem("vendifacil:token");
   let response: Response;
+  let timeout: number | undefined;
   try {
+    const controller = new AbortController();
+    timeout = window.setTimeout(() => controller.abort(), 10000);
     response = await fetch(buildUrl(path, options?.params), {
       method,
       headers: {
@@ -80,9 +86,12 @@ async function request<T>(method: string, path: string, body?: unknown, options?
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: body === undefined ? undefined : JSON.stringify(body),
+      signal: controller.signal,
     });
   } catch {
     throw new ApiError("Não foi possível conectar ao servidor. Verifique se o backend está ligado na porta 8000.", 0, null);
+  } finally {
+    if (timeout !== undefined) window.clearTimeout(timeout);
   }
 
   const data = await parseBody(response);

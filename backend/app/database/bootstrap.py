@@ -100,6 +100,17 @@ def ensure_multitenant_schema(engine: Engine) -> None:
                     "UPDATE inventory_losses SET unit_cost = COALESCE((SELECT unit_cost FROM product_lots WHERE product_lots.id = inventory_losses.lot_id), (SELECT cost_price FROM products WHERE products.id = inventory_losses.product_id), 0)"
                 )
             )
+        if "sales" in inspector.get_table_names():
+            sale_columns = {
+                "offline_operation_id": "VARCHAR(80)",
+                "device_id": "VARCHAR(80)",
+                "local_created_at": "DATETIME",
+                "sync_status": "VARCHAR(30) NOT NULL DEFAULT 'SYNCED'",
+                "sync_conflict": "TEXT",
+            }
+            for column_name, definition in sale_columns.items():
+                if not _has_column(inspector, "sales", column_name):
+                    connection.execute(text(f"ALTER TABLE sales ADD COLUMN {column_name} {definition}"))
 
         inspector = inspect(connection)
 
@@ -258,8 +269,12 @@ def ensure_multitenant_schema(engine: Engine) -> None:
             "supplier_price_history": ["CREATE INDEX IF NOT EXISTS ix_supplier_prices_period ON supplier_price_history (account_id, product_id, supplier_id, recorded_at)"],
             "payable_payments": ["CREATE INDEX IF NOT EXISTS ix_payable_payments_period ON payable_payments (account_id, payment_date)"],
             "assistant_query_logs": ["CREATE INDEX IF NOT EXISTS ix_assistant_query_account_period ON assistant_query_logs (account_id, created_at)"],
+            "sync_operation_logs": ["CREATE INDEX IF NOT EXISTS ix_sync_logs_account_status ON sync_operation_logs (account_id, status, updated_at)", "CREATE INDEX IF NOT EXISTS ix_sync_logs_device ON sync_operation_logs (account_id, device_id)"],
         }
         for table_name, statements in analytics_indexes.items():
             if table_name in inspector.get_table_names():
                 for statement in statements:
                     connection.execute(text(statement))
+        if "sales" in inspector.get_table_names():
+            connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_sales_account_idempotency ON sales (account_id, idempotency_key)"))
+            connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_sales_account_offline_operation ON sales (account_id, offline_operation_id)"))

@@ -39,6 +39,7 @@ def apply_stock_movement(
     target_stock: float | None = None,
     reference_type: str | None = None,
     reference_id: int | None = None,
+    allow_negative: bool = False,
 ) -> StockMovement:
     previous_stock = round(float(product.stock_quantity), 2)
     quantity = round(float(quantity), 2)
@@ -50,7 +51,7 @@ def apply_stock_movement(
     if movement_type in INBOUND_MOVEMENTS:
         new_stock = previous_stock + quantity
     elif movement_type in OUTBOUND_MOVEMENTS:
-        if previous_stock < quantity:
+        if previous_stock < quantity and not allow_negative:
             raise StockValidationError(f"Estoque insuficiente para {product.name}.")
         new_stock = previous_stock - quantity
     elif movement_type in TARGET_MOVEMENTS:

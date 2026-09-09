@@ -18,3 +18,4 @@ Thumbs.db
 *.db
 *.log
 *.tsbuildinfo
+backups/

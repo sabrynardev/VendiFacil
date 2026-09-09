@@ -100,3 +100,33 @@ class SaleResponse(BaseModel):
     created_at: datetime
     items: list[SaleItemResponse]
     payments: list[PaymentResponse]
+
+
+class OfflineSaleItem(BaseModel):
+    product_id: int
+    quantity: float = Field(gt=0)
+    unit_price: float = Field(ge=0)
+    discount: float = Field(ge=0, default=0)
+    product_updated_at: datetime | None = None
+
+
+class OfflineSaleCreate(BaseModel):
+    operation_id: str = Field(min_length=16, max_length=80)
+    idempotency_key: str = Field(min_length=16, max_length=80)
+    device_id: str = Field(min_length=8, max_length=80)
+    local_created_at: datetime
+    cash_register_id: int | None = None
+    items: list[OfflineSaleItem] = Field(min_length=1)
+    discount: float = Field(ge=0, default=0)
+    surcharge: float = Field(ge=0, default=0)
+    payments: list[PaymentCreate] = Field(min_length=1)
+    note: str | None = Field(default=None, max_length=500)
+
+
+class SyncResult(BaseModel):
+    operation_id: str
+    status: str
+    duplicate: bool = False
+    conflict: bool = False
+    conflicts: list[str] = Field(default_factory=list)
+    sale: SaleResponse | None = None

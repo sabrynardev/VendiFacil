@@ -46,6 +46,8 @@ O módulo da Fase 5, com dashboard gerencial, Curva ABC, margens, estoque parado
 
 O módulo da Fase 6, com previsão de reposição, central de insights e Pergunte ao Vendi em modo seguro e determinístico, está documentado em [docs/phase-6-intelligence.md](docs/phase-6-intelligence.md).
 
+A Fase 7 adiciona operação offline segura no PDV, fila idempotente, detecção real de conexão, conflitos auditáveis, backup e endurecimento de produção. Consulte [docs/phase-7-resilience.md](docs/phase-7-resilience.md).
+
 ## Por que este projeto é forte para portfólio
 
 - Resolve um problema real de operação comercial, em vez de ser apenas um CRUD genérico

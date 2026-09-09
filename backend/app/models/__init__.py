@@ -8,6 +8,7 @@ from app.models.intelligence import AssistantQueryLog
 from app.models.management_inventory import InventoryCount, InventoryCountItem, InventoryCountStatus, InventoryLoss, LossReason, LotStatus, ProductLot
 from app.models.purchase import ProductSupplier, PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus, PurchaseReceipt, PurchaseReceiptItem, SupplierPriceHistory
 from app.models.product import Product
+from app.models.resilience import SyncOperationLog
 from app.models.profile import Permission, Profile, profile_permissions
 from app.models.sale import PaymentMethod, Sale, SaleItem, SalePayment, SaleStatus
 from app.models.stock_movement import StockMovement, StockMovementType

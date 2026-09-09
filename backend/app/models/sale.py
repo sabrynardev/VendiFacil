@@ -1,7 +1,7 @@
 import enum
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, Enum, ForeignKey, Integer, Numeric, String
+from sqlalchemy import Date, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.session import Base
@@ -23,6 +23,10 @@ class PaymentMethod(str, enum.Enum):
 
 class Sale(Base):
     __tablename__ = "sales"
+    __table_args__ = (
+        UniqueConstraint("account_id", "idempotency_key", name="uq_sales_account_idempotency"),
+        UniqueConstraint("account_id", "offline_operation_id", name="uq_sales_account_offline_operation"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), nullable=False, index=True)
@@ -39,6 +43,11 @@ class Sale(Base):
     status: Mapped[SaleStatus] = mapped_column(Enum(SaleStatus), nullable=False, default=SaleStatus.COMPLETED)
     note: Mapped[str | None] = mapped_column(String(500), nullable=True)
     idempotency_key: Mapped[str | None] = mapped_column(String(80), nullable=True, index=True)
+    offline_operation_id: Mapped[str | None] = mapped_column(String(80), nullable=True, index=True)
+    device_id: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    local_created_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    sync_status: Mapped[str] = mapped_column(String(30), nullable=False, default="SYNCED")
+    sync_conflict: Mapped[str | None] = mapped_column(Text, nullable=True)
     cancelled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     cancelled_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     cancellation_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)

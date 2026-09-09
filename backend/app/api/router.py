@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.routes import accounts, analytics, audit, auth, cash_registers, categories, customers, dashboard, financial, intelligence, inventory, management_inventory, products, profiles, purchases, reports, sales, suppliers, users
+from app.api.routes import accounts, analytics, audit, auth, cash_registers, categories, customers, dashboard, financial, intelligence, inventory, management_inventory, products, profiles, purchases, reports, resilience, sales, suppliers, users
 
 api_router = APIRouter()
 api_router.include_router(accounts.router, prefix="/accounts", tags=["accounts"])
@@ -20,5 +20,6 @@ api_router.include_router(customers.router, prefix="/customers", tags=["customer
 api_router.include_router(financial.router, prefix="/financial", tags=["financial"])
 api_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
 api_router.include_router(intelligence.router, prefix="/intelligence", tags=["intelligence"])
+api_router.include_router(resilience.router, prefix="/sync", tags=["synchronization"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 api_router.include_router(reports.router, prefix="/reports", tags=["reports"])

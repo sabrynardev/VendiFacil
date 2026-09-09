@@ -1,11 +1,12 @@
 from functools import lru_cache
 
-from pydantic import computed_field
+from pydantic import computed_field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     app_name: str = "VendiFácil API"
+    app_environment: str = "development"
     database_url: str = "sqlite:///./marketpulse.db"
     jwt_secret_key: str = "change-me"
     jwt_algorithm: str = "HS256"
@@ -22,6 +23,15 @@ class Settings(BaseSettings):
     intelligence_assistant_enabled: bool = True
     ai_provider: str = "disabled"
     ai_api_key: str | None = None
+
+    @model_validator(mode="after")
+    def validate_production_security(self):
+        if self.app_environment.casefold() == "production":
+            if self.jwt_secret_key == "change-me" or len(self.jwt_secret_key) < 32:
+                raise ValueError("JWT_SECRET_KEY deve ter pelo menos 32 caracteres em produção.")
+            if self.auto_seed:
+                raise ValueError("AUTO_SEED deve estar desativado em produção.")
+        return self
 
     model_config = SettingsConfigDict(
         env_file=".env",

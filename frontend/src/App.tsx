@@ -2,6 +2,8 @@ import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ToastProvider } from "./components/ToastProvider";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { ConnectivityProvider } from "./contexts/ConnectivityContext";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AppLayout } from "./layouts/AppLayout";
 import { brand } from "./config/brand";
 import { LoginPage } from "./pages/LoginPage";
@@ -27,6 +29,7 @@ const SalesPage = lazy(() => import("./pages/SalesPage").then((module) => ({ def
 const SettingsPage = lazy(() => import("./pages/SettingsPage").then((module) => ({ default: module.SettingsPage })));
 const SuppliersPage = lazy(() => import("./pages/SuppliersPage").then((module) => ({ default: module.SuppliersPage })));
 const UsersPage = lazy(() => import("./pages/UsersPage").then((module) => ({ default: module.UsersPage })));
+const SynchronizationPage = lazy(() => import("./pages/SynchronizationPage").then((module) => ({ default: module.SynchronizationPage })));
 
 function ScreenLoader() {
   return <div className="flex min-h-screen items-center justify-center text-slate-500">Carregando {brand.shortName}...</div>;
@@ -70,8 +73,10 @@ function PermissionRoute({ permission, children }: { permission: string; childre
 export default function App() {
   return (
     <AuthProvider>
-      <ToastProvider>
-        <Suspense fallback={<ScreenLoader />}>
+      <ConnectivityProvider>
+        <ToastProvider>
+          <ErrorBoundary>
+            <Suspense fallback={<ScreenLoader />}>
           <Routes>
             <Route path="/apresentacao" element={<MarketingPage />} />
             <Route path="/login" element={<PublicRoutes />} />
@@ -96,10 +101,13 @@ export default function App() {
               <Route path="users" element={<PermissionRoute permission="users.manage"><UsersPage /></PermissionRoute>} />
               <Route path="audit" element={<PermissionRoute permission="audit.view"><AuditPage /></PermissionRoute>} />
               <Route path="settings" element={<PermissionRoute permission="settings.view"><SettingsPage /></PermissionRoute>} />
+              <Route path="synchronization" element={<SynchronizationPage />} />
             </Route>
           </Routes>
-        </Suspense>
-      </ToastProvider>
+            </Suspense>
+          </ErrorBoundary>
+        </ToastProvider>
+      </ConnectivityProvider>
     </AuthProvider>
   );
 }

@@ -1,0 +1,9 @@
+{
+  "name": "VendiFácil",
+  "short_name": "Vendi",
+  "start_url": "/cashier",
+  "display": "standalone",
+  "background_color": "#eef4ff",
+  "theme_color": "#011C6B",
+  "description": "PDV e gestão para pequenos varejos"
+}

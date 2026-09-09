@@ -1,8 +1,9 @@
-import { BarChart3, Boxes, BrainCircuit, ClipboardCheck, ClipboardList, Cog, LayoutDashboard, ListTree, LogOut, Menu, MessageCircle, PackageSearch, ReceiptText, ShoppingBasket, ShoppingCart, Tags, Truck, UserRound, Users, WalletCards } from "lucide-react";
+import { BarChart3, Boxes, BrainCircuit, ClipboardCheck, ClipboardList, Cloud, Cog, LayoutDashboard, ListTree, LogOut, Menu, MessageCircle, PackageSearch, ReceiptText, ShoppingBasket, ShoppingCart, Tags, Truck, UserRound, Users, WalletCards } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { brand } from "../config/brand";
 import { useAuth } from "../contexts/AuthContext";
+import { ConnectionStatus } from "../components/ConnectionStatus";
 
 const links = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, permission: "dashboard.view" },
@@ -23,6 +24,7 @@ const links = [
   { to: "/ask-vendi", label: "Pergunte ao Vendi", icon: MessageCircle, permission: "assistant.ask" },
   { to: "/users", label: "Equipe", icon: Users, permission: "users.manage" },
   { to: "/audit", label: "Auditoria", icon: ClipboardList, permission: "audit.view" },
+  { to: "/synchronization", label: "Sincronização", icon: Cloud, permission: "cashier.operate" },
   { to: "/settings", label: "Configurações", icon: Cog, permission: "settings.view" },
 ];
 
@@ -75,6 +77,7 @@ export function AppLayout() {
         </div>
       </aside>
       <main className="flex-1 p-4 md:p-6 lg:p-8">
+        <ConnectionStatus />
         <div className="mb-6 flex items-center justify-between rounded-2xl border border-stroke bg-white/88 px-4 py-3 shadow-soft lg:hidden">
           <div>
             <p className="text-xs uppercase tracking-[0.25em] text-brand">{brand.shortName}</p>
