@@ -7,6 +7,7 @@ import { useAuth } from "../contexts/AuthContext";
 const links = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, permission: "dashboard.view" },
   { to: "/cashier", label: "Caixa", icon: ShoppingCart, permission: "cashier.operate" },
+  { to: "/cash-registers", label: "Histórico de caixas", icon: ReceiptText, permission: "cash_register.view" },
   { to: "/products", label: "Produtos", icon: PackageSearch, permission: "products.view" },
   { to: "/categories", label: "Categorias", icon: ListTree, permission: "products.manage" },
   { to: "/inventory", label: "Estoque", icon: Boxes, permission: "inventory.view" },

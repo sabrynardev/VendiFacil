@@ -7,9 +7,15 @@ import { useAsync } from "../hooks/useAsync";
 import { salesService } from "../services/sales";
 import type { Sale } from "../types";
 import { formatCurrency, formatDateTime } from "../utils/format";
+import { Button } from "../components/Button";
+import { Badge } from "../components/Badge";
+import { useToast } from "../components/ToastProvider";
 
 export function SalesPage() {
-  const { data, loading } = useAsync(() => salesService.list(), []);
+  const toast = useToast();
+  const [statusFilter, setStatusFilter] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState("");
+  const { data, loading, setData } = useAsync(() => salesService.list({ status: statusFilter || undefined, payment_method: paymentFilter || undefined }), [statusFilter, paymentFilter]);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
 
   return (
@@ -18,13 +24,17 @@ export function SalesPage() {
         <h1 className="page-title">Vendas</h1>
         <p className="page-subtitle">Histórico de transações com detalhes de itens, operador e pagamento.</p>
       </div>
+      <Card className="grid gap-3 md:grid-cols-2">
+        <label className="text-sm">Status<select className="mt-1 w-full rounded-xl border-stroke bg-white" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="">Todos</option><option value="COMPLETED">Concluídas</option><option value="ON_HOLD">Em espera</option><option value="CANCELLED">Canceladas</option></select></label>
+        <label className="text-sm">Pagamento<select className="mt-1 w-full rounded-xl border-stroke bg-white" value={paymentFilter} onChange={(event) => setPaymentFilter(event.target.value)}><option value="">Todos</option><option value="DINHEIRO">Dinheiro</option><option value="PIX">PIX</option><option value="DEBITO">Débito</option><option value="CREDITO">Crédito</option></select></label>
+      </Card>
       <Card>
         {loading || !data ? (
           <p className="text-sm text-slate-500">Carregando vendas...</p>
         ) : data.length === 0 ? (
           <EmptyState title="Nenhuma venda registrada" description="Finalize vendas no caixa para preencher o histórico." />
         ) : (
-          <DataTable headers={["Número", "Data", "Operador", "Itens", "Pagamento", "Total"]}>
+          <DataTable headers={["Número", "Data", "Operador", "Itens", "Pagamento", "Total", "Status"]}>
             {data.map((sale) => (
               <tr key={sale.id} className="cursor-pointer transition hover:bg-brand/5" onClick={() => setSelectedSale(sale)}>
                 <td className="px-4 py-3 font-medium">#{String(sale.id).padStart(6, "0")}</td>
@@ -33,6 +43,7 @@ export function SalesPage() {
                 <td className="px-4 py-3">{sale.items.length}</td>
                 <td className="px-4 py-3">{sale.payment_method}</td>
                 <td className="px-4 py-3 text-brandStrong">{formatCurrency(sale.total)}</td>
+                <td className="px-4 py-3"><Badge label={sale.status} /></td>
               </tr>
             ))}
           </DataTable>
@@ -72,6 +83,9 @@ export function SalesPage() {
                 <span>Subtotal</span>
                 <span>{formatCurrency(selectedSale.subtotal)}</span>
               </div>
+              <div className="mt-3 space-y-2 border-t border-stroke pt-3 text-sm text-slate-600">
+                {selectedSale.payments.map((payment, index) => <div key={`${payment.id}-${index}`} className="flex justify-between"><span>{payment.method}</span><span>{formatCurrency(payment.amount)}</span></div>)}
+              </div>
               <div className="mt-3 flex justify-between text-sm text-slate-600">
                 <span>Desconto</span>
                 <span>{formatCurrency(selectedSale.discount)}</span>
@@ -81,6 +95,8 @@ export function SalesPage() {
                 <span>{formatCurrency(selectedSale.total)}</span>
               </div>
             </Card>
+            {selectedSale.cancellation_reason && <p className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700">Motivo do cancelamento: {selectedSale.cancellation_reason}</p>}
+            <div className="flex gap-3 print:hidden"><Button variant="secondary" onClick={() => window.print()}>Imprimir comprovante</Button>{selectedSale.status === "COMPLETED" && <Button variant="danger" onClick={async () => { const reason = window.prompt("Motivo do cancelamento:"); if (!reason) return; try { const updated = await salesService.cancel(selectedSale.id, reason); setSelectedSale(updated); setData((current) => current?.map((sale) => sale.id === updated.id ? updated : sale) ?? null); toast.push("Venda cancelada e estoque restaurado."); } catch (error) { toast.push(error instanceof Error ? error.message : "Não foi possível cancelar.", "error"); } }}>Cancelar venda</Button>}</div>
           </div>
         </Modal>
       )}

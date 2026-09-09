@@ -105,6 +105,7 @@ export interface SaleItem {
   id: number;
   product_id: number;
   product_name: string;
+  product_unit: string;
   quantity: number;
   unit_price: number;
   discount: number;
@@ -113,17 +114,61 @@ export interface SaleItem {
 
 export interface Sale {
   id: number;
+  number: string;
   user_id: number;
   operator_name: string;
+  cash_register_id?: number | null;
   subtotal: number;
   discount: number;
+  surcharge: number;
   total: number;
   payment_method: string;
   amount_received?: number | null;
   change_amount?: number | null;
   status: string;
+  note?: string | null;
+  cancellation_reason?: string | null;
+  cancelled_at?: string | null;
   created_at: string;
   items: SaleItem[];
+  payments: SalePayment[];
+}
+
+export interface SalePayment {
+  id: number;
+  method: string;
+  amount: number;
+  amount_received?: number | null;
+  change_amount: number;
+}
+
+export interface CashSummary {
+  opening_balance: number;
+  cash_sales: number;
+  pix_sales: number;
+  debit_sales: number;
+  credit_sales: number;
+  total_sales: number;
+  supplies: number;
+  withdrawals: number;
+  refunds: number;
+  expected_cash: number;
+}
+
+export interface CashRegister {
+  id: number;
+  operator_name: string;
+  closed_by_name?: string | null;
+  opened_at: string;
+  closed_at?: string | null;
+  opening_balance: number;
+  expected_balance?: number | null;
+  counted_balance?: number | null;
+  difference?: number | null;
+  status: string;
+  closing_note?: string | null;
+  summary: CashSummary;
+  movements: Array<{ id: number; type: string; amount: number; reason?: string | null; created_at: string }>;
 }
 
 export interface InventoryRecord {

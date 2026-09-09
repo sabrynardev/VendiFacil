@@ -36,7 +36,7 @@ Essa página foi pensada para:
 
 ## Evolução do produto
 
-A Fase 1 da evolução para produto comercial está documentada em [docs/phase-1-foundation.md](docs/phase-1-foundation.md), incluindo perfis, permissões, equipe, auditoria e migração do banco.
+A Fase 1 está documentada em [docs/phase-1-foundation.md](docs/phase-1-foundation.md). A operação completa da Fase 2, incluindo PDV, pagamentos, caixa, estoque e roteiro de validação, está em [docs/phase-2-operation.md](docs/phase-2-operation.md).
 
 ## Por que este projeto é forte para portfólio
 

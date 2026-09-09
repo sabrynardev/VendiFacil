@@ -39,4 +39,7 @@ def auth_headers(client: TestClient):
         json={"email": "admin@marketpulse.dev", "password": "admin123"},
     )
     assert response.status_code == 200, response.text
-    return {"Authorization": f"Bearer {response.json()['access_token']}"}
+    headers = {"Authorization": f"Bearer {response.json()['access_token']}"}
+    opened = client.post("/cash-registers/open", headers=headers, json={"opening_balance": 100})
+    assert opened.status_code == 201, opened.text
+    return headers

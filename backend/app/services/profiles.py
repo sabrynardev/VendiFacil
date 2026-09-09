@@ -45,6 +45,9 @@ def ensure_default_profiles(db: Session, account_id: int) -> dict[str, Profile]:
             profiles[code] = profile
         if created or not profile.permissions:
             profile.permissions = [permissions[item.value] for item in permission_codes]
+        elif profile.is_system:
+            current_codes = {permission.code for permission in profile.permissions}
+            profile.permissions.extend(permissions[item.value] for item in permission_codes if item.value not in current_codes)
     db.flush()
     return profiles
 

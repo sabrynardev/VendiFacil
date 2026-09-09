@@ -57,6 +57,19 @@ def ensure_multitenant_schema(engine: Engine) -> None:
             connection.execute(text("ALTER TABLE stock_movements ADD COLUMN reference_type VARCHAR(40)"))
         if "stock_movements" in inspector.get_table_names() and not _has_column(inspector, "stock_movements", "reference_id"):
             connection.execute(text("ALTER TABLE stock_movements ADD COLUMN reference_id INTEGER"))
+        sale_columns = {
+            "cash_register_id": "INTEGER",
+            "surcharge": "NUMERIC(10, 2) NOT NULL DEFAULT 0",
+            "note": "VARCHAR(500)",
+            "idempotency_key": "VARCHAR(80)",
+            "cancelled_at": "DATETIME",
+            "cancelled_by_id": "INTEGER",
+            "cancellation_reason": "VARCHAR(500)",
+        }
+        if "sales" in inspector.get_table_names():
+            for column_name, column_type in sale_columns.items():
+                if not _has_column(inspector, "sales", column_name):
+                    connection.execute(text(f"ALTER TABLE sales ADD COLUMN {column_name} {column_type}"))
 
         inspector = inspect(connection)
 
@@ -197,6 +210,8 @@ def ensure_multitenant_schema(engine: Engine) -> None:
             )
         if "sales" in inspector.get_table_names():
             connection.execute(text("CREATE INDEX IF NOT EXISTS ix_sales_account_id ON sales (account_id)"))
+            connection.execute(text("CREATE INDEX IF NOT EXISTS ix_sales_cash_register_id ON sales (cash_register_id)"))
+            connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_sales_account_idempotency ON sales (account_id, idempotency_key) WHERE idempotency_key IS NOT NULL"))
         if "stock_movements" in inspector.get_table_names():
             connection.execute(text("CREATE INDEX IF NOT EXISTS ix_stock_movements_account_id ON stock_movements (account_id)"))
         if "users" in inspector.get_table_names():

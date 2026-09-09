@@ -8,6 +8,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 
 const CashierPage = lazy(() => import("./pages/CashierPage").then((module) => ({ default: module.CashierPage })));
+const CashRegistersPage = lazy(() => import("./pages/CashRegistersPage").then((module) => ({ default: module.CashRegistersPage })));
 const CategoriesPage = lazy(() => import("./pages/CategoriesPage").then((module) => ({ default: module.CategoriesPage })));
 const AuditPage = lazy(() => import("./pages/AuditPage").then((module) => ({ default: module.AuditPage })));
 const DashboardPage = lazy(() => import("./pages/DashboardPage").then((module) => ({ default: module.DashboardPage })));
@@ -71,6 +72,7 @@ export default function App() {
             <Route path="/" element={<PrivateRoutes />}>
               <Route index element={<HomeRoute />} />
               <Route path="cashier" element={<PermissionRoute permission="cashier.operate"><CashierPage /></PermissionRoute>} />
+              <Route path="cash-registers" element={<PermissionRoute permission="cash_register.view"><CashRegistersPage /></PermissionRoute>} />
               <Route path="products" element={<PermissionRoute permission="products.view"><ProductsPage /></PermissionRoute>} />
               <Route path="categories" element={<PermissionRoute permission="products.manage"><CategoriesPage /></PermissionRoute>} />
               <Route path="inventory" element={<PermissionRoute permission="inventory.view"><InventoryPage /></PermissionRoute>} />
