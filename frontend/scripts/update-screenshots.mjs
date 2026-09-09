@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const appUrl = process.env.VENDI_APP_URL ?? "http://localhost:5173";
@@ -99,4 +99,5 @@ if (product) {
 await capture("checkout-modal.png");
 await send("Browser.close");
 socket.close();
-browser.unref();
+await Promise.race([new Promise(resolve => browser.once("exit", resolve)), sleep(5000)]);
+await rm(profile, { recursive: true, force: true });
