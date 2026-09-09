@@ -86,6 +86,15 @@ def ensure_multitenant_schema(engine: Engine) -> None:
                     connection.execute(text(f"ALTER TABLE sales ADD COLUMN {column_name} {column_type}"))
 
         inspector = inspect(connection)
+        if "sale_items" in inspector.get_table_names() and not _has_column(inspector, "sale_items", "cost_price"):
+            connection.execute(text("ALTER TABLE sale_items ADD COLUMN cost_price NUMERIC(12, 2) NOT NULL DEFAULT 0"))
+            connection.execute(
+                text(
+                    "UPDATE sale_items SET cost_price = COALESCE((SELECT cost_price FROM products WHERE products.id = sale_items.product_id), 0)"
+                )
+            )
+
+        inspector = inspect(connection)
 
         if "categories" in inspector.get_table_names() and not _has_column(inspector, "categories", "account_id"):
             connection.execute(text("PRAGMA foreign_keys=OFF"))

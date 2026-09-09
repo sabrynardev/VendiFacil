@@ -40,6 +40,8 @@ A Fase 1 está documentada em [docs/phase-1-foundation.md](docs/phase-1-foundati
 
 A gestão da Fase 3, com fornecedores, compras, recebimentos, lotes, validade, inventários, clientes e fiado, está documentada em [docs/phase-3-management.md](docs/phase-3-management.md).
 
+O módulo da Fase 4, com contas, fluxo de caixa, CMV, lucro e fechamento gerencial, está documentado em [docs/phase-4-financial.md](docs/phase-4-financial.md).
+
 ## Por que este projeto é forte para portfólio
 
 - Resolve um problema real de operação comercial, em vez de ser apenas um CRUD genérico

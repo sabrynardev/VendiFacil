@@ -402,3 +402,126 @@ export interface ReportSummary {
   estimated_profit: number;
   items_sold: number;
 }
+
+export interface FinancialCategory {
+  id: number;
+  name: string;
+  type: "RECEITA" | "DESPESA";
+  affects_result: boolean;
+  active: boolean;
+}
+
+export interface FinancialPayment {
+  id: number;
+  amount: number;
+  method: string;
+  user_name: string;
+  occurred_at: string;
+  notes?: string | null;
+}
+
+export interface Payable {
+  id: number;
+  description: string;
+  category_id: number;
+  category_name: string;
+  supplier_id?: number | null;
+  supplier_name?: string | null;
+  purchase_order_id?: number | null;
+  original_amount: number;
+  paid_amount: number;
+  balance: number;
+  due_date: string;
+  paid_at?: string | null;
+  status: string;
+  is_overdue: boolean;
+  payment_method?: string | null;
+  notes?: string | null;
+  origin: string;
+  affects_result: boolean;
+  created_at: string;
+  payments: FinancialPayment[];
+}
+
+export interface ManualRevenue {
+  id: number;
+  description: string;
+  category_name: string;
+  amount: number;
+  received_at: string;
+  competence_date?: string | null;
+  payment_method: string;
+  reference?: string | null;
+  notes?: string | null;
+  cancelled: boolean;
+  created_by_name: string;
+}
+
+export interface FinancialReceivable {
+  id: string;
+  source_id: number;
+  source: string;
+  description: string;
+  customer_id?: number | null;
+  customer_name?: string | null;
+  original_amount: number;
+  received_amount: number;
+  balance: number;
+  due_date?: string | null;
+  status: string;
+  is_overdue: boolean;
+  created_at: string;
+}
+
+export interface FinancialSummary {
+  period_start: string;
+  period_end: string;
+  revenue: number;
+  sales_count: number;
+  average_ticket: number;
+  received_sales: number;
+  credit_sales: number;
+  credit_receipts: number;
+  manual_revenues: number;
+  cash_in: number;
+  cmv: number;
+  gross_profit: number;
+  gross_margin: number;
+  operational_expenses: number;
+  cash_out: number;
+  estimated_result: number;
+  payables_balance: number;
+  receivables_balance: number;
+  overdue_payables: number;
+  overdue_receivables: number;
+  payment_methods: Record<string, number>;
+}
+
+export interface CashFlowEntry {
+  id: string;
+  occurred_at: string;
+  direction: "ENTRADA" | "SAIDA";
+  source: string;
+  description: string;
+  amount: number;
+  payment_method: string;
+}
+
+export interface FinancialProjection {
+  days: number;
+  payables: number;
+  receivables: number;
+}
+
+export interface RecurringExpense {
+  id: number;
+  description: string;
+  category_id: number;
+  supplier_id?: number | null;
+  amount: number;
+  frequency: string;
+  next_due_date: string;
+  notes?: string | null;
+  active: boolean;
+  created_at: string;
+}

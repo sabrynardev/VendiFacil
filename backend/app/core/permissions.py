@@ -27,6 +27,16 @@ class PermissionCode(StrEnum):
     CREDIT_SELL = "credit.sell"
     CREDIT_RECEIVE = "credit.receive"
     CREDIT_MANAGE = "credit.manage"
+    FINANCIAL_VIEW = "financial.view"
+    FINANCIAL_EXPENSE_CREATE = "financial.expense.create"
+    FINANCIAL_EXPENSE_EDIT = "financial.expense.edit"
+    FINANCIAL_PAY = "financial.pay"
+    FINANCIAL_CANCEL = "financial.cancel"
+    FINANCIAL_PROFIT_VIEW = "financial.profit.view"
+    FINANCIAL_COST_VIEW = "financial.cost.view"
+    FINANCIAL_REVENUE_CREATE = "financial.revenue.create"
+    FINANCIAL_PAYABLES = "financial.payables"
+    FINANCIAL_RECEIVABLES = "financial.receivables"
     REPORTS_VIEW = "reports.view"
     PROFIT_VIEW = "profit.view"
     USERS_MANAGE = "users.manage"
@@ -60,6 +70,16 @@ PERMISSION_LABELS = {
     PermissionCode.CREDIT_SELL: ("Realizar venda fiada", "Clientes"),
     PermissionCode.CREDIT_RECEIVE: ("Receber pagamento de fiado", "Clientes"),
     PermissionCode.CREDIT_MANAGE: ("Gerenciar limites e autorizações", "Clientes"),
+    PermissionCode.FINANCIAL_VIEW: ("Visualizar financeiro", "Financeiro"),
+    PermissionCode.FINANCIAL_EXPENSE_CREATE: ("Criar despesas", "Financeiro"),
+    PermissionCode.FINANCIAL_EXPENSE_EDIT: ("Editar despesas", "Financeiro"),
+    PermissionCode.FINANCIAL_PAY: ("Registrar pagamentos financeiros", "Financeiro"),
+    PermissionCode.FINANCIAL_CANCEL: ("Cancelar lançamentos financeiros", "Financeiro"),
+    PermissionCode.FINANCIAL_PROFIT_VIEW: ("Visualizar lucro e resultado", "Financeiro"),
+    PermissionCode.FINANCIAL_COST_VIEW: ("Visualizar custos", "Financeiro"),
+    PermissionCode.FINANCIAL_REVENUE_CREATE: ("Criar receitas manuais", "Financeiro"),
+    PermissionCode.FINANCIAL_PAYABLES: ("Gerenciar contas a pagar", "Financeiro"),
+    PermissionCode.FINANCIAL_RECEIVABLES: ("Gerenciar contas a receber", "Financeiro"),
     PermissionCode.REPORTS_VIEW: ("Visualizar relatórios", "Relatórios"),
     PermissionCode.PROFIT_VIEW: ("Visualizar lucro", "Financeiro"),
     PermissionCode.USERS_MANAGE: ("Gerenciar funcionários", "Equipe"),
@@ -96,6 +116,16 @@ DEFAULT_PROFILE_PERMISSIONS = {
         PermissionCode.CREDIT_SELL,
         PermissionCode.CREDIT_RECEIVE,
         PermissionCode.CREDIT_MANAGE,
+        PermissionCode.FINANCIAL_VIEW,
+        PermissionCode.FINANCIAL_EXPENSE_CREATE,
+        PermissionCode.FINANCIAL_EXPENSE_EDIT,
+        PermissionCode.FINANCIAL_PAY,
+        PermissionCode.FINANCIAL_CANCEL,
+        PermissionCode.FINANCIAL_PROFIT_VIEW,
+        PermissionCode.FINANCIAL_COST_VIEW,
+        PermissionCode.FINANCIAL_REVENUE_CREATE,
+        PermissionCode.FINANCIAL_PAYABLES,
+        PermissionCode.FINANCIAL_RECEIVABLES,
         PermissionCode.REPORTS_VIEW,
         PermissionCode.PROFIT_VIEW,
         PermissionCode.AUDIT_VIEW,

@@ -17,6 +17,7 @@ const InventoryCountsPage = lazy(() => import("./pages/InventoryCountsPage").the
 const LotsPage = lazy(() => import("./pages/LotsPage").then((module) => ({ default: module.LotsPage })));
 const PurchasesPage = lazy(() => import("./pages/PurchasesPage").then((module) => ({ default: module.PurchasesPage })));
 const CustomersPage = lazy(() => import("./pages/CustomersPage").then((module) => ({ default: module.CustomersPage })));
+const FinancialPage = lazy(() => import("./pages/FinancialPage").then((module) => ({ default: module.FinancialPage })));
 const MarketingPage = lazy(() => import("./pages/MarketingPage").then((module) => ({ default: module.MarketingPage })));
 const ProductsPage = lazy(() => import("./pages/ProductsPage").then((module) => ({ default: module.ProductsPage })));
 const ReportsPage = lazy(() => import("./pages/ReportsPage").then((module) => ({ default: module.ReportsPage })));
@@ -86,6 +87,7 @@ export default function App() {
               <Route path="suppliers" element={<PermissionRoute permission="suppliers.view"><SuppliersPage /></PermissionRoute>} />
               <Route path="purchases" element={<PermissionRoute permission="purchases.view"><PurchasesPage /></PermissionRoute>} />
               <Route path="customers" element={<PermissionRoute permission="customers.view"><CustomersPage /></PermissionRoute>} />
+              <Route path="financial" element={<PermissionRoute permission="financial.view"><FinancialPage /></PermissionRoute>} />
               <Route path="reports" element={<PermissionRoute permission="reports.view"><ReportsPage /></PermissionRoute>} />
               <Route path="users" element={<PermissionRoute permission="users.manage"><UsersPage /></PermissionRoute>} />
               <Route path="audit" element={<PermissionRoute permission="audit.view"><AuditPage /></PermissionRoute>} />

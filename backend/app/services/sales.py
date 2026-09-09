@@ -50,7 +50,7 @@ def prepare_items(db: Session, items, user: User, *, check_stock: bool = True) -
             raise SaleValidationError(f"O desconto de {product.name} não pode superar o valor do item.")
         item_total = money(gross - discount)
         subtotal += item_total
-        prepared.append({"product": product, "quantity": quantity, "unit_price": money(product.sale_price), "discount": discount, "subtotal": item_total})
+        prepared.append({"product": product, "quantity": quantity, "unit_price": money(product.sale_price), "cost_price": money(product.cost_price), "discount": discount, "subtotal": item_total})
     return prepared, money(subtotal)
 
 
@@ -174,7 +174,7 @@ def create_sale(db: Session, payload: SaleCreate, user: User, existing_sale: Sal
     db.flush()
 
     for entry in prepared_items:
-        db.add(SaleItem(sale_id=sale.id, product_id=entry["product"].id, quantity=entry["quantity"], unit_price=entry["unit_price"], discount=entry["discount"], subtotal=entry["subtotal"]))
+        db.add(SaleItem(sale_id=sale.id, product_id=entry["product"].id, quantity=entry["quantity"], unit_price=entry["unit_price"], cost_price=entry["cost_price"], discount=entry["discount"], subtotal=entry["subtotal"]))
         try:
             apply_stock_movement(db, product=entry["product"], user=user, movement_type=StockMovementType.VENDA, quantity=float(entry["quantity"]), reason=f"Venda #{sale.id}", reference_type="sale", reference_id=sale.id)
         except StockValidationError as exc:

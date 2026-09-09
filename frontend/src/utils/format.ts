@@ -7,6 +7,9 @@ export const formatDateTime = (value: string) =>
     timeStyle: "short",
   }).format(new Date(value));
 
+export const formatDate = (value: string) =>
+  new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`));
+
 export const classByStatus: Record<string, string> = {
   NORMAL: "bg-brand/10 text-brandStrong",
   BAIXO: "bg-amber-100 text-amber-700",
@@ -35,6 +38,9 @@ export const classByStatus: Record<string, string> = {
   PARCIAL: "bg-blue-100 text-blue-700",
   QUITADO: "bg-emerald-100 text-emerald-700",
   ESTORNADO: "bg-slate-100 text-slate-700",
+  PENDENTE: "bg-amber-100 text-amber-700",
+  PAGA: "bg-emerald-100 text-emerald-700",
+  VENCIDA: "bg-rose-100 text-rose-700",
   BLOQUEADO: "bg-rose-100 text-rose-700",
   LIBERADO: "bg-emerald-100 text-emerald-700",
 };

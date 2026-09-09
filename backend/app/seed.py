@@ -12,7 +12,7 @@ from app.models.sale import Sale, SaleItem
 from app.models.stock_movement import StockMovement, StockMovementType
 from app.models.supplier import Supplier
 from app.models.user import User, UserRole
-from app.services.accounts import ensure_default_categories
+from app.services.accounts import ensure_default_categories, ensure_default_financial_categories
 from app.services.profiles import ensure_default_profiles
 
 
@@ -62,6 +62,8 @@ def seed_database(db: Session):
     cashier = db.query(User).filter(User.email == "sabrina@marketpulse.dev").first()
 
     ensure_default_categories(db, demo_account.id)
+    ensure_default_financial_categories(db, demo_account.id)
+    db.commit()
 
     suppliers_seed = [
         {"name": "Distribuidora Centro", "phone": "(11) 3333-1111", "email": "contato@centro.local"},
@@ -170,6 +172,7 @@ def seed_database(db: Session):
                         product_id=product.id,
                         quantity=quantity,
                         unit_price=product.sale_price,
+                        cost_price=product.cost_price,
                         discount=0,
                         subtotal=item_subtotal,
                     )

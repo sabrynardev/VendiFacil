@@ -65,6 +65,7 @@ class SaleItem(Base):
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), nullable=False)
     quantity: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     unit_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    cost_price: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
     discount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False, default=0)
     subtotal: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
 
