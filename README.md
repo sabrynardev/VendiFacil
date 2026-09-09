@@ -38,6 +38,8 @@ Essa página foi pensada para:
 
 A Fase 1 está documentada em [docs/phase-1-foundation.md](docs/phase-1-foundation.md). A operação completa da Fase 2, incluindo PDV, pagamentos, caixa, estoque e roteiro de validação, está em [docs/phase-2-operation.md](docs/phase-2-operation.md).
 
+A gestão da Fase 3, com fornecedores, compras, recebimentos, lotes, validade, inventários, clientes e fiado, está documentada em [docs/phase-3-management.md](docs/phase-3-management.md).
+
 ## Por que este projeto é forte para portfólio
 
 - Resolve um problema real de operação comercial, em vez de ser apenas um CRUD genérico

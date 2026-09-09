@@ -23,7 +23,7 @@ def serialize_sale(sale: Sale) -> SaleResponse:
         payments = [PaymentResponse(id=0, method=PaymentMethod(sale.payment_method), amount=float(sale.total), amount_received=float(sale.amount_received) if sale.amount_received is not None else float(sale.total), change_amount=float(sale.change_amount or 0))]
     return SaleResponse(
         id=sale.id, number=f"#{sale.id:06d}", user_id=sale.user_id, operator_name=sale.user.name,
-        cash_register_id=sale.cash_register_id, subtotal=float(sale.subtotal), discount=float(sale.discount),
+        cash_register_id=sale.cash_register_id, customer_id=sale.customer_id, customer_name=sale.customer.name if sale.customer else None, credit_due_date=sale.credit_due_date, subtotal=float(sale.subtotal), discount=float(sale.discount),
         surcharge=float(sale.surcharge or 0), total=float(sale.total), payment_method=sale.payment_method,
         amount_received=float(sale.amount_received) if sale.amount_received is not None else None,
         change_amount=float(sale.change_amount) if sale.change_amount is not None else None,
@@ -69,6 +69,8 @@ def create_sale_endpoint(payload: SaleCreate, db: Session = Depends(get_db), cur
         log_audit(db, current_user, action="CREATE", entity_type="SALE", entity_id=sale.id, description=f"Concluiu a venda #{sale.id} no valor de R$ {float(sale.total):.2f}.")
         if authorizer:
             log_audit(db, current_user, action="SPECIAL_DISCOUNT", entity_type="SALE", entity_id=sale.id, description=f"Desconto especial autorizado por {authorizer.name}.", changes={"authorized_by": authorizer.id})
+        if sale.credit_authorized_by_id:
+            log_audit(db, current_user, action="CREDIT_OVERRIDE", entity_type="SALE", entity_id=sale.id, description=f"Excesso de limite autorizado por {sale.credit_authorized_by.name}.", changes={"authorized_by": sale.credit_authorized_by_id})
         db.commit(); db.refresh(sale)
         return serialize_sale(sale)
     except SaleValidationError as exc:
@@ -91,6 +93,7 @@ def complete_held_sale(sale_id: int, payload: SaleCreate, db: Session = Depends(
         sale, authorizer = create_sale(db, payload, current_user, held)
         log_audit(db, current_user, action="COMPLETE", entity_type="SALE", entity_id=sale.id, description=f"Concluiu a venda em espera #{sale.id}.")
         if authorizer: log_audit(db, current_user, action="SPECIAL_DISCOUNT", entity_type="SALE", entity_id=sale.id, description=f"Desconto especial autorizado por {authorizer.name}.")
+        if sale.credit_authorized_by_id: log_audit(db, current_user, action="CREDIT_OVERRIDE", entity_type="SALE", entity_id=sale.id, description=f"Excesso de limite autorizado por {sale.credit_authorized_by.name}.")
         db.commit(); db.refresh(sale); return serialize_sale(sale)
     except SaleValidationError as exc:
         db.rollback(); raise HTTPException(status_code=400, detail=str(exc)) from exc

@@ -62,6 +62,7 @@ export function SalesPage() {
                 <p className="text-sm text-slate-500">Operador</p>
                 <p className="mt-2 font-medium">{selectedSale.operator_name}</p>
               </Card>
+              {selectedSale.customer_name && <Card className="bg-brand/4"><p className="text-sm text-slate-500">Cliente</p><p className="mt-2 font-medium">{selectedSale.customer_name}{selectedSale.credit_due_date?` · vence ${new Date(selectedSale.credit_due_date+"T12:00:00").toLocaleDateString("pt-BR")}`:""}</p></Card>}
             </div>
             <div className="space-y-3">
               {selectedSale.items.map((item) => (

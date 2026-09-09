@@ -19,6 +19,7 @@ class CashMovementType(str, enum.Enum):
     SUPPLY = "SUPPLY"
     REFUND = "REFUND"
     CLOSING = "CLOSING"
+    CREDIT_RECEIPT = "RECEBIMENTO_FIADO"
 
 
 class CashRegister(Base):

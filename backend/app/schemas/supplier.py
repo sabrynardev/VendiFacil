@@ -5,11 +5,14 @@ from pydantic import BaseModel, EmailStr
 
 class SupplierBase(BaseModel):
     name: str
+    trade_name: str | None = None
     cnpj: str | None = None
     phone: str | None = None
     whatsapp: str | None = None
     email: EmailStr | None = None
     address: str | None = None
+    city: str | None = None
+    state: str | None = None
     notes: str | None = None
     active: bool = True
 
@@ -27,6 +30,7 @@ class SupplierResponse(SupplierBase):
     # Instalações antigas podem conter domínios locais usados nos dados de demonstração.
     email: str | None = None
     created_at: datetime
+    updated_at: datetime
     products_count: int = 0
 
     class Config:

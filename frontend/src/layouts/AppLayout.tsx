@@ -1,4 +1,4 @@
-import { BarChart3, Boxes, ClipboardList, Cog, LayoutDashboard, ListTree, LogOut, Menu, PackageSearch, ReceiptText, ShoppingCart, Truck, Users } from "lucide-react";
+import { BarChart3, Boxes, ClipboardCheck, ClipboardList, Cog, LayoutDashboard, ListTree, LogOut, Menu, PackageSearch, ReceiptText, ShoppingBasket, ShoppingCart, Tags, Truck, UserRound, Users } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { brand } from "../config/brand";
@@ -11,8 +11,12 @@ const links = [
   { to: "/products", label: "Produtos", icon: PackageSearch, permission: "products.view" },
   { to: "/categories", label: "Categorias", icon: ListTree, permission: "products.manage" },
   { to: "/inventory", label: "Estoque", icon: Boxes, permission: "inventory.view" },
+  { to: "/lots", label: "Lotes e validade", icon: Tags, permission: "lots.view" },
+  { to: "/inventory-counts", label: "Inventários", icon: ClipboardCheck, permission: "inventory.count" },
   { to: "/sales", label: "Vendas", icon: ReceiptText, permission: "sales.view" },
   { to: "/suppliers", label: "Fornecedores", icon: Truck, permission: "suppliers.view" },
+  { to: "/purchases", label: "Compras", icon: ShoppingBasket, permission: "purchases.view" },
+  { to: "/customers", label: "Clientes e fiado", icon: UserRound, permission: "customers.view" },
   { to: "/reports", label: "Relatórios", icon: BarChart3, permission: "reports.view" },
   { to: "/users", label: "Equipe", icon: Users, permission: "users.manage" },
   { to: "/audit", label: "Auditoria", icon: ClipboardList, permission: "audit.view" },

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -28,6 +28,8 @@ class SaleCreate(BaseModel):
     idempotency_key: str | None = Field(default=None, min_length=8, max_length=80)
     authorization_email: str | None = None
     authorization_password: str | None = None
+    customer_id: int | None = None
+    credit_due_date: date | None = None
 
     @model_validator(mode="after")
     def validate_items(self):
@@ -43,6 +45,7 @@ class HoldSaleCreate(BaseModel):
     discount: float = Field(ge=0, default=0)
     surcharge: float = Field(ge=0, default=0)
     note: str | None = Field(default=None, max_length=500)
+    customer_id: int | None = None
 
     @model_validator(mode="after")
     def validate_items(self):
@@ -80,6 +83,9 @@ class SaleResponse(BaseModel):
     user_id: int
     operator_name: str
     cash_register_id: int | None
+    customer_id: int | None
+    customer_name: str | None
+    credit_due_date: date | None
     subtotal: float
     discount: float
     surcharge: float

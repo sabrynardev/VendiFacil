@@ -7,12 +7,14 @@ from app.auth.security import verify_password
 from app.core.permissions import PermissionCode
 from app.core.products import ProductUnit
 from app.models.cash_register import CashMovementType
+from app.models.customer import Customer, CustomerDebt, DebtStatus
 from app.models.product import Product
 from app.models.sale import PaymentMethod, Sale, SaleItem, SalePayment, SaleStatus
 from app.models.stock_movement import StockMovementType
 from app.models.user import User
 from app.schemas.sale import HoldSaleCreate, PaymentCreate, SaleCreate
 from app.services.cash_registers import add_cash_movement, current_register
+from app.services.customers import customer_balance
 from app.services.inventory import StockValidationError, apply_stock_movement
 from app.services.profiles import permission_codes_for_user
 
@@ -81,6 +83,36 @@ def normalized_payments(payload: SaleCreate, total: Decimal) -> list[PaymentCrea
     return [PaymentCreate(method=payload.payment_method, amount=float(total), amount_received=payload.amount_received)]
 
 
+def validate_credit_sale(db: Session, payload: SaleCreate, payments: list[PaymentCreate], user: User) -> tuple[Customer | None, Decimal, User | None]:
+    credit_amount = money(sum((money(payment.amount) for payment in payments if payment.method == PaymentMethod.CREDIT_ACCOUNT), Decimal("0")))
+    if credit_amount <= 0:
+        customer = db.query(Customer).filter(Customer.id == payload.customer_id, Customer.account_id == user.account_id).first() if payload.customer_id else None
+        if payload.customer_id and not customer:
+            raise SaleValidationError("Cliente não encontrado.")
+        return customer, credit_amount, None
+    if PermissionCode.CREDIT_SELL.value not in permission_codes_for_user(user):
+        raise SaleValidationError("Você não possui permissão para realizar venda fiada.")
+    if not payload.customer_id:
+        raise SaleValidationError("Selecione um cliente para realizar venda fiada.")
+    customer = db.query(Customer).filter(Customer.id == payload.customer_id, Customer.account_id == user.account_id, Customer.active.is_(True)).with_for_update().first()
+    if not customer:
+        raise SaleValidationError("Cliente não encontrado.")
+    if customer.credit_blocked:
+        raise SaleValidationError("O fiado deste cliente está bloqueado.")
+    projected = customer_balance(customer) + credit_amount
+    if customer.credit_limit is None or projected <= money(customer.credit_limit):
+        return customer, credit_amount, None
+    permissions = permission_codes_for_user(user)
+    if PermissionCode.CREDIT_MANAGE.value in permissions:
+        return customer, credit_amount, user
+    if not payload.authorization_email or not payload.authorization_password:
+        raise SaleValidationError("O limite de crédito será excedido. Solicite autorização de gerente ou administrador.")
+    authorizer = db.query(User).filter(User.account_id == user.account_id, User.email == payload.authorization_email, User.active.is_(True)).first()
+    if not authorizer or not verify_password(payload.authorization_password, authorizer.password_hash) or PermissionCode.CREDIT_MANAGE.value not in permission_codes_for_user(authorizer):
+        raise SaleValidationError("Credenciais de autorização de crédito inválidas.")
+    return customer, credit_amount, authorizer
+
+
 def create_sale(db: Session, payload: SaleCreate, user: User, existing_sale: Sale | None = None) -> tuple[Sale, User | None]:
     register = current_register(db, user)
     if not register:
@@ -101,10 +133,9 @@ def create_sale(db: Session, payload: SaleCreate, user: User, existing_sale: Sal
     authorizer = validate_discount_authorization(db, payload, user, gross_total, item_discounts + global_discount)
 
     payments = normalized_payments(payload, total)
-    if any(payment.method == PaymentMethod.CREDIT_ACCOUNT for payment in payments):
-        raise SaleValidationError("Fiado será disponibilizado na Fase 3.")
     if money(sum((money(payment.amount) for payment in payments), Decimal("0"))) != total:
         raise SaleValidationError("A soma dos pagamentos deve ser igual ao total da venda.")
+    customer, credit_amount, credit_authorizer = validate_credit_sale(db, payload, payments, user)
 
     total_received = Decimal("0")
     total_change = Decimal("0")
@@ -127,6 +158,7 @@ def create_sale(db: Session, payload: SaleCreate, user: User, existing_sale: Sal
     else:
         db.add(sale)
     sale.cash_register_id = register.id
+    sale.customer_id = customer.id if customer else None
     sale.subtotal = item_subtotal
     sale.discount = global_discount
     sale.surcharge = surcharge
@@ -136,6 +168,8 @@ def create_sale(db: Session, payload: SaleCreate, user: User, existing_sale: Sal
     sale.change_amount = total_change
     sale.note = payload.note
     sale.idempotency_key = payload.idempotency_key
+    sale.credit_due_date = payload.credit_due_date
+    sale.credit_authorized_by_id = credit_authorizer.id if credit_authorizer else None
     sale.status = SaleStatus.COMPLETED
     db.flush()
 
@@ -151,7 +185,10 @@ def create_sale(db: Session, payload: SaleCreate, user: User, existing_sale: Sal
         received = money(payment.amount_received if payment.amount_received is not None else amount)
         change = received - amount if payment.method == PaymentMethod.CASH else Decimal("0")
         db.add(SalePayment(sale_id=sale.id, method=payment.method, amount=amount, amount_received=received, change_amount=change))
-        add_cash_movement(db, register, user, CashMovementType.SALE, amount, payment_method=payment.method.value, reason=f"Venda #{sale.id}", reference_type="sale", reference_id=sale.id)
+        if payment.method != PaymentMethod.CREDIT_ACCOUNT:
+            add_cash_movement(db, register, user, CashMovementType.SALE, amount, payment_method=payment.method.value, reason=f"Venda #{sale.id}", reference_type="sale", reference_id=sale.id)
+    if customer and credit_amount > 0:
+        db.add(CustomerDebt(account_id=user.account_id, customer_id=customer.id, sale_id=sale.id, amount=credit_amount, balance=credit_amount, due_date=payload.credit_due_date, status=DebtStatus.OPEN, notes=payload.note))
     db.flush()
     return sale, authorizer
 
@@ -161,7 +198,8 @@ def hold_sale(db: Session, payload: HoldSaleCreate, user: User) -> Sale:
     total = money(subtotal - money(payload.discount) + money(payload.surcharge))
     if total < 0:
         raise SaleValidationError("O desconto não pode gerar total negativo.")
-    sale = Sale(account_id=user.account_id, user_id=user.id, subtotal=subtotal, discount=money(payload.discount), surcharge=money(payload.surcharge), total=total, payment_method="PENDENTE", status=SaleStatus.ON_HOLD, note=payload.note)
+    customer = db.query(Customer).filter(Customer.id == payload.customer_id, Customer.account_id == user.account_id).first() if payload.customer_id else None
+    sale = Sale(account_id=user.account_id, user_id=user.id, customer_id=customer.id if customer else None, subtotal=subtotal, discount=money(payload.discount), surcharge=money(payload.surcharge), total=total, payment_method="PENDENTE", status=SaleStatus.ON_HOLD, note=payload.note)
     db.add(sale)
     db.flush()
     for entry in prepared:
@@ -180,7 +218,11 @@ def cancel_sale(db: Session, sale: Sale, user: User, reason: str) -> None:
         for item in sale.items:
             apply_stock_movement(db, product=item.product, user=user, movement_type=StockMovementType.CANCELAMENTO, quantity=float(item.quantity), reason=f"Cancelamento da venda #{sale.id}", reference_type="sale", reference_id=sale.id)
         for payment in sale.payments:
-            add_cash_movement(db, sale.cash_register, user, CashMovementType.REFUND, payment.amount, payment_method=payment.method.value, reason=reason, reference_type="sale", reference_id=sale.id)
+            if payment.method != PaymentMethod.CREDIT_ACCOUNT:
+                add_cash_movement(db, sale.cash_register, user, CashMovementType.REFUND, payment.amount, payment_method=payment.method.value, reason=reason, reference_type="sale", reference_id=sale.id)
+        if sale.customer_debt:
+            sale.customer_debt.balance = 0
+            sale.customer_debt.status = DebtStatus.REVERSED
         sale.status = SaleStatus.CANCELLED
     sale.cancelled_at = datetime.utcnow()
     sale.cancelled_by_id = user.id

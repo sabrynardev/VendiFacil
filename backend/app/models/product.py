@@ -32,3 +32,5 @@ class Product(Base):
     supplier = relationship("Supplier", back_populates="products")
     sale_items = relationship("SaleItem", back_populates="product")
     stock_movements = relationship("StockMovement", back_populates="product")
+    supplier_links = relationship("ProductSupplier", back_populates="product", cascade="all, delete-orphan")
+    lots = relationship("ProductLot", back_populates="product")

@@ -13,11 +13,14 @@ export function SupplierForm({
 }) {
   const [form, setForm] = useState({
     name: "",
+    trade_name: "",
     cnpj: "",
     phone: "",
     whatsapp: "",
     email: "",
     address: "",
+    city: "",
+    state: "",
     notes: "",
   });
 
@@ -25,11 +28,14 @@ export function SupplierForm({
     if (initialValue) {
       setForm({
         name: initialValue.name,
+        trade_name: initialValue.trade_name ?? "",
         cnpj: initialValue.cnpj ?? "",
         phone: initialValue.phone ?? "",
         whatsapp: initialValue.whatsapp ?? "",
         email: initialValue.email ?? "",
         address: initialValue.address ?? "",
+        city: initialValue.city ?? "",
+        state: initialValue.state ?? "",
         notes: initialValue.notes ?? "",
       });
     }
@@ -44,10 +50,13 @@ export function SupplierForm({
     <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
       {[
         ["name", "Nome"],
+        ["trade_name", "Nome fantasia"],
         ["cnpj", "CNPJ"],
         ["phone", "Telefone"],
         ["whatsapp", "WhatsApp"],
         ["email", "E-mail"],
+        ["city", "Cidade"],
+        ["state", "UF"],
       ].map(([name, label]) => (
         <label key={name} className="space-y-2 text-sm">
           <span>{label}</span>

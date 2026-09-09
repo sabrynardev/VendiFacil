@@ -53,6 +53,17 @@ def ensure_multitenant_schema(engine: Engine) -> None:
             connection.execute(text("ALTER TABLE products ADD COLUMN brand VARCHAR(100)"))
         if "suppliers" in inspector.get_table_names() and not _has_column(inspector, "suppliers", "active"):
             connection.execute(text("ALTER TABLE suppliers ADD COLUMN active BOOLEAN NOT NULL DEFAULT 1"))
+        supplier_columns = {
+            "trade_name": "VARCHAR(160)",
+            "city": "VARCHAR(100)",
+            "state": "VARCHAR(2)",
+            "updated_at": "DATETIME",
+        }
+        if "suppliers" in inspector.get_table_names():
+            for column_name, column_type in supplier_columns.items():
+                if not _has_column(inspector, "suppliers", column_name):
+                    connection.execute(text(f"ALTER TABLE suppliers ADD COLUMN {column_name} {column_type}"))
+            connection.execute(text("UPDATE suppliers SET updated_at = COALESCE(updated_at, created_at, CURRENT_TIMESTAMP)"))
         if "stock_movements" in inspector.get_table_names() and not _has_column(inspector, "stock_movements", "reference_type"):
             connection.execute(text("ALTER TABLE stock_movements ADD COLUMN reference_type VARCHAR(40)"))
         if "stock_movements" in inspector.get_table_names() and not _has_column(inspector, "stock_movements", "reference_id"):
@@ -65,6 +76,9 @@ def ensure_multitenant_schema(engine: Engine) -> None:
             "cancelled_at": "DATETIME",
             "cancelled_by_id": "INTEGER",
             "cancellation_reason": "VARCHAR(500)",
+            "customer_id": "INTEGER",
+            "credit_due_date": "DATE",
+            "credit_authorized_by_id": "INTEGER",
         }
         if "sales" in inspector.get_table_names():
             for column_name, column_type in sale_columns.items():

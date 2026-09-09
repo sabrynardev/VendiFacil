@@ -41,6 +41,7 @@ def register_summary(register: CashRegister) -> dict[str, float]:
     totals = {method.value: Decimal("0") for method in PaymentMethod}
     supplies = withdrawals = Decimal("0")
     refund_totals = {method.value: Decimal("0") for method in PaymentMethod}
+    credit_receipts = {method.value: Decimal("0") for method in PaymentMethod}
     for movement in register.movements:
         amount = money(movement.amount)
         if movement.type == CashMovementType.SALE and movement.payment_method:
@@ -51,9 +52,11 @@ def register_summary(register: CashRegister) -> dict[str, float]:
             withdrawals += amount
         elif movement.type == CashMovementType.REFUND and movement.payment_method:
             refund_totals[movement.payment_method] = refund_totals.get(movement.payment_method, Decimal("0")) + amount
+        elif movement.type == CashMovementType.CREDIT_RECEIPT and movement.payment_method:
+            credit_receipts[movement.payment_method] = credit_receipts.get(movement.payment_method, Decimal("0")) + amount
     net_totals = {method: totals[method] - refund_totals.get(method, Decimal("0")) for method in totals}
     cash_refunds = refund_totals[PaymentMethod.CASH.value]
-    expected = money(register.opening_balance) + net_totals[PaymentMethod.CASH.value] + supplies - withdrawals
+    expected = money(register.opening_balance) + net_totals[PaymentMethod.CASH.value] + credit_receipts[PaymentMethod.CASH.value] + supplies - withdrawals
     return {
         "opening_balance": float(register.opening_balance),
         "cash_sales": float(net_totals[PaymentMethod.CASH.value]),
@@ -64,6 +67,7 @@ def register_summary(register: CashRegister) -> dict[str, float]:
         "supplies": float(supplies),
         "withdrawals": float(withdrawals),
         "refunds": float(sum(refund_totals.values())),
+        "credit_receipts": float(sum(credit_receipts.values())),
         "expected_cash": float(expected),
     }
 

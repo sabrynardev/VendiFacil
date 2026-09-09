@@ -13,6 +13,10 @@ const CategoriesPage = lazy(() => import("./pages/CategoriesPage").then((module)
 const AuditPage = lazy(() => import("./pages/AuditPage").then((module) => ({ default: module.AuditPage })));
 const DashboardPage = lazy(() => import("./pages/DashboardPage").then((module) => ({ default: module.DashboardPage })));
 const InventoryPage = lazy(() => import("./pages/InventoryPage").then((module) => ({ default: module.InventoryPage })));
+const InventoryCountsPage = lazy(() => import("./pages/InventoryCountsPage").then((module) => ({ default: module.InventoryCountsPage })));
+const LotsPage = lazy(() => import("./pages/LotsPage").then((module) => ({ default: module.LotsPage })));
+const PurchasesPage = lazy(() => import("./pages/PurchasesPage").then((module) => ({ default: module.PurchasesPage })));
+const CustomersPage = lazy(() => import("./pages/CustomersPage").then((module) => ({ default: module.CustomersPage })));
 const MarketingPage = lazy(() => import("./pages/MarketingPage").then((module) => ({ default: module.MarketingPage })));
 const ProductsPage = lazy(() => import("./pages/ProductsPage").then((module) => ({ default: module.ProductsPage })));
 const ReportsPage = lazy(() => import("./pages/ReportsPage").then((module) => ({ default: module.ReportsPage })));
@@ -76,8 +80,12 @@ export default function App() {
               <Route path="products" element={<PermissionRoute permission="products.view"><ProductsPage /></PermissionRoute>} />
               <Route path="categories" element={<PermissionRoute permission="products.manage"><CategoriesPage /></PermissionRoute>} />
               <Route path="inventory" element={<PermissionRoute permission="inventory.view"><InventoryPage /></PermissionRoute>} />
+              <Route path="lots" element={<PermissionRoute permission="lots.view"><LotsPage /></PermissionRoute>} />
+              <Route path="inventory-counts" element={<PermissionRoute permission="inventory.count"><InventoryCountsPage /></PermissionRoute>} />
               <Route path="sales" element={<PermissionRoute permission="sales.view"><SalesPage /></PermissionRoute>} />
               <Route path="suppliers" element={<PermissionRoute permission="suppliers.view"><SuppliersPage /></PermissionRoute>} />
+              <Route path="purchases" element={<PermissionRoute permission="purchases.view"><PurchasesPage /></PermissionRoute>} />
+              <Route path="customers" element={<PermissionRoute permission="customers.view"><CustomersPage /></PermissionRoute>} />
               <Route path="reports" element={<PermissionRoute permission="reports.view"><ReportsPage /></PermissionRoute>} />
               <Route path="users" element={<PermissionRoute permission="users.manage"><UsersPage /></PermissionRoute>} />
               <Route path="audit" element={<PermissionRoute permission="audit.view"><AuditPage /></PermissionRoute>} />

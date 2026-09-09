@@ -41,6 +41,7 @@ class CashSummary(BaseModel):
     supplies: float
     withdrawals: float
     refunds: float
+    credit_receipts: float = 0
     expected_cash: float
 
 

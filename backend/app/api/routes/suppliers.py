@@ -16,15 +16,19 @@ def serialize_supplier(supplier: Supplier) -> SupplierResponse:
     return SupplierResponse(
         id=supplier.id,
         name=supplier.name,
+        trade_name=supplier.trade_name,
         cnpj=supplier.cnpj,
         phone=supplier.phone,
         whatsapp=supplier.whatsapp,
         email=supplier.email,
         address=supplier.address,
+        city=supplier.city,
+        state=supplier.state,
         notes=supplier.notes,
         active=supplier.active,
         created_at=supplier.created_at,
-        products_count=len(supplier.products),
+        updated_at=supplier.updated_at,
+        products_count=len({product.id for product in supplier.products} | {link.product_id for link in supplier.product_links}),
     )
 
 
@@ -101,7 +105,7 @@ def delete_supplier(
     supplier = db.query(Supplier).filter(Supplier.id == supplier_id, Supplier.account_id == current_user.account_id).first()
     if not supplier:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Fornecedor não encontrado.")
-    has_products = bool(supplier.products)
+    has_products = bool(supplier.products or supplier.product_links or supplier.purchase_orders)
     log_audit(
         db,
         current_user,

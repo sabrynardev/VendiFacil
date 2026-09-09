@@ -66,14 +66,18 @@ export interface Category {
 export interface Supplier {
   id: number;
   name: string;
+  trade_name?: string | null;
   cnpj?: string | null;
   phone?: string | null;
   whatsapp?: string | null;
   email?: string | null;
   address?: string | null;
+  city?: string | null;
+  state?: string | null;
   notes?: string | null;
   active: boolean;
   created_at: string;
+  updated_at: string;
   products_count: number;
 }
 
@@ -118,6 +122,9 @@ export interface Sale {
   user_id: number;
   operator_name: string;
   cash_register_id?: number | null;
+  customer_id?: number | null;
+  customer_name?: string | null;
+  credit_due_date?: string | null;
   subtotal: number;
   discount: number;
   surcharge: number;
@@ -152,7 +159,163 @@ export interface CashSummary {
   supplies: number;
   withdrawals: number;
   refunds: number;
+  credit_receipts: number;
   expected_cash: number;
+}
+
+export interface ProductSupplier {
+  id: number;
+  product_id: number;
+  product_name: string;
+  supplier_id: number;
+  supplier_name: string;
+  supplier_code?: string | null;
+  last_price?: number | null;
+  last_purchase_at?: string | null;
+  preferred: boolean;
+  lead_time_days?: number | null;
+}
+
+export interface PurchaseItem {
+  id: number;
+  product_id: number;
+  product_name: string;
+  product_unit: string;
+  ordered_quantity: number;
+  received_quantity: number;
+  pending_quantity: number;
+  unit_cost: number;
+  subtotal: number;
+  notes?: string | null;
+}
+
+export interface PurchaseOrder {
+  id: number;
+  number: string;
+  supplier_id: number;
+  supplier_name: string;
+  created_by_name: string;
+  order_date: string;
+  expected_date?: string | null;
+  notes?: string | null;
+  subtotal: number;
+  discount: number;
+  total: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  items: PurchaseItem[];
+}
+
+export interface PriceHistory {
+  id: number;
+  supplier_id: number;
+  supplier_name: string;
+  product_id: number;
+  product_name: string;
+  unit_cost: number;
+  previous_cost?: number | null;
+  variation_percent?: number | null;
+  recorded_at: string;
+}
+
+export interface ProductLot {
+  id: number;
+  product_id: number;
+  product_name: string;
+  supplier_name?: string | null;
+  lot_code?: string | null;
+  initial_quantity: number;
+  current_quantity: number;
+  unit_cost: number;
+  entry_date: string;
+  expiration_date?: string | null;
+  expiry_state: string;
+  days_remaining?: number | null;
+  status: string;
+  created_at: string;
+}
+
+export interface InventoryLoss {
+  id: number;
+  product_name: string;
+  lot_code?: string | null;
+  quantity: number;
+  reason: string;
+  notes?: string | null;
+  user_name: string;
+  created_at: string;
+}
+
+export interface InventoryCountItem {
+  id: number;
+  product_id: number;
+  product_name: string;
+  system_quantity: number;
+  counted_quantity?: number | null;
+  difference?: number | null;
+}
+
+export interface InventoryCount {
+  id: number;
+  number: string;
+  responsible_name: string;
+  category_name?: string | null;
+  notes?: string | null;
+  status: string;
+  created_at: string;
+  completed_at?: string | null;
+  positive_differences: number;
+  negative_differences: number;
+  items: InventoryCountItem[];
+}
+
+export interface CustomerDebt {
+  id: number;
+  sale_id: number;
+  sale_number: string;
+  amount: number;
+  balance: number;
+  due_date?: string | null;
+  status: string;
+  is_overdue: boolean;
+  days_open: number;
+  created_at: string;
+}
+
+export interface CustomerPayment {
+  id: number;
+  amount: number;
+  method: string;
+  responsible_name: string;
+  balance_before: number;
+  balance_after: number;
+  notes?: string | null;
+  created_at: string;
+}
+
+export interface Customer {
+  id: number;
+  name: string;
+  phone?: string | null;
+  whatsapp?: string | null;
+  cpf?: string | null;
+  address?: string | null;
+  notes?: string | null;
+  credit_limit?: number | null;
+  credit_blocked: boolean;
+  active: boolean;
+  balance: number;
+  available_credit?: number | null;
+  total_purchased: number;
+  ticket_average: number;
+  last_purchase_at?: string | null;
+  overdue_balance: number;
+  created_at: string;
+  updated_at: string;
+  debts: CustomerDebt[];
+  payments: CustomerPayment[];
+  sales: Array<{ id: number; number: string; total: number; payment_method: string; status: string; created_at: string }>;
 }
 
 export interface CashRegister {

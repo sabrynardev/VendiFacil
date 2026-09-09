@@ -10,6 +10,8 @@ export interface SalePayload {
   idempotency_key?: string;
   authorization_email?: string;
   authorization_password?: string;
+  customer_id?: number;
+  credit_due_date?: string;
 }
 
 export const salesService = {

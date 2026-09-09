@@ -17,6 +17,16 @@ class PermissionCode(StrEnum):
     SALES_CANCEL = "sales.cancel"
     SUPPLIERS_VIEW = "suppliers.view"
     SUPPLIERS_MANAGE = "suppliers.manage"
+    PURCHASES_VIEW = "purchases.view"
+    PURCHASES_MANAGE = "purchases.manage"
+    LOTS_VIEW = "lots.view"
+    LOTS_MANAGE = "lots.manage"
+    INVENTORY_COUNT = "inventory.count"
+    CUSTOMERS_VIEW = "customers.view"
+    CUSTOMERS_MANAGE = "customers.manage"
+    CREDIT_SELL = "credit.sell"
+    CREDIT_RECEIVE = "credit.receive"
+    CREDIT_MANAGE = "credit.manage"
     REPORTS_VIEW = "reports.view"
     PROFIT_VIEW = "profit.view"
     USERS_MANAGE = "users.manage"
@@ -40,6 +50,16 @@ PERMISSION_LABELS = {
     PermissionCode.SALES_CANCEL: ("Cancelar vendas", "Vendas"),
     PermissionCode.SUPPLIERS_VIEW: ("Visualizar fornecedores", "Fornecedores"),
     PermissionCode.SUPPLIERS_MANAGE: ("Gerenciar fornecedores", "Fornecedores"),
+    PermissionCode.PURCHASES_VIEW: ("Visualizar compras", "Compras"),
+    PermissionCode.PURCHASES_MANAGE: ("Gerenciar compras e recebimentos", "Compras"),
+    PermissionCode.LOTS_VIEW: ("Visualizar lotes e validade", "Estoque"),
+    PermissionCode.LOTS_MANAGE: ("Gerenciar lotes e perdas", "Estoque"),
+    PermissionCode.INVENTORY_COUNT: ("Realizar inventários", "Estoque"),
+    PermissionCode.CUSTOMERS_VIEW: ("Visualizar clientes", "Clientes"),
+    PermissionCode.CUSTOMERS_MANAGE: ("Gerenciar clientes", "Clientes"),
+    PermissionCode.CREDIT_SELL: ("Realizar venda fiada", "Clientes"),
+    PermissionCode.CREDIT_RECEIVE: ("Receber pagamento de fiado", "Clientes"),
+    PermissionCode.CREDIT_MANAGE: ("Gerenciar limites e autorizações", "Clientes"),
     PermissionCode.REPORTS_VIEW: ("Visualizar relatórios", "Relatórios"),
     PermissionCode.PROFIT_VIEW: ("Visualizar lucro", "Financeiro"),
     PermissionCode.USERS_MANAGE: ("Gerenciar funcionários", "Equipe"),
@@ -66,6 +86,16 @@ DEFAULT_PROFILE_PERMISSIONS = {
         PermissionCode.SALES_CANCEL,
         PermissionCode.SUPPLIERS_VIEW,
         PermissionCode.SUPPLIERS_MANAGE,
+        PermissionCode.PURCHASES_VIEW,
+        PermissionCode.PURCHASES_MANAGE,
+        PermissionCode.LOTS_VIEW,
+        PermissionCode.LOTS_MANAGE,
+        PermissionCode.INVENTORY_COUNT,
+        PermissionCode.CUSTOMERS_VIEW,
+        PermissionCode.CUSTOMERS_MANAGE,
+        PermissionCode.CREDIT_SELL,
+        PermissionCode.CREDIT_RECEIVE,
+        PermissionCode.CREDIT_MANAGE,
         PermissionCode.REPORTS_VIEW,
         PermissionCode.PROFIT_VIEW,
         PermissionCode.AUDIT_VIEW,
@@ -76,6 +106,9 @@ DEFAULT_PROFILE_PERMISSIONS = {
         PermissionCode.CASH_REGISTER_VIEW,
         PermissionCode.CASH_REGISTER_OPERATE,
         PermissionCode.DISCOUNT_NORMAL,
+        PermissionCode.CUSTOMERS_VIEW,
+        PermissionCode.CREDIT_SELL,
+        PermissionCode.CREDIT_RECEIVE,
     ],
     "ESTOQUE": [
         PermissionCode.DASHBOARD_VIEW,
@@ -85,5 +118,10 @@ DEFAULT_PROFILE_PERMISSIONS = {
         PermissionCode.INVENTORY_MANAGE,
         PermissionCode.SUPPLIERS_VIEW,
         PermissionCode.SUPPLIERS_MANAGE,
+        PermissionCode.PURCHASES_VIEW,
+        PermissionCode.PURCHASES_MANAGE,
+        PermissionCode.LOTS_VIEW,
+        PermissionCode.LOTS_MANAGE,
+        PermissionCode.INVENTORY_COUNT,
     ],
 }
