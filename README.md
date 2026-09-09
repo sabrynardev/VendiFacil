@@ -42,6 +42,8 @@ A gestão da Fase 3, com fornecedores, compras, recebimentos, lotes, validade, i
 
 O módulo da Fase 4, com contas, fluxo de caixa, CMV, lucro e fechamento gerencial, está documentado em [docs/phase-4-financial.md](docs/phase-4-financial.md).
 
+O módulo da Fase 5, com dashboard gerencial, Curva ABC, margens, estoque parado, fiado, fornecedores, perdas e exportação CSV, está documentado em [docs/phase-5-analytics.md](docs/phase-5-analytics.md).
+
 ## Por que este projeto é forte para portfólio
 
 - Resolve um problema real de operação comercial, em vez de ser apenas um CRUD genérico

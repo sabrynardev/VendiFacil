@@ -59,7 +59,7 @@ def register_loss(db: Session, payload: LossCreate, user: User) -> InventoryLoss
         lot.current_quantity = Decimal(str(lot.current_quantity)) - Decimal(str(payload.quantity))
         if lot.current_quantity <= 0:
             lot.status = LotStatus.DEPLETED
-    loss = InventoryLoss(account_id=user.account_id, product_id=product.id, lot_id=lot.id if lot else None, user_id=user.id, quantity=payload.quantity, reason=payload.reason, notes=payload.notes)
+    loss = InventoryLoss(account_id=user.account_id, product_id=product.id, lot_id=lot.id if lot else None, user_id=user.id, quantity=payload.quantity, unit_cost=lot.unit_cost if lot else product.cost_price, reason=payload.reason, notes=payload.notes)
     db.add(loss)
     db.flush()
     apply_stock_movement(db, product=product, user=user, movement_type=StockMovementType.PERDA, quantity=payload.quantity, reason=f"{payload.reason.value}: {payload.notes or 'sem observação'}", reference_type="inventory_loss", reference_id=loss.id)

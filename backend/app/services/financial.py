@@ -448,37 +448,3 @@ def reconciliation_issues(db: Session, account_id: int) -> list[dict]:
         if not db.query(Payable).filter(Payable.purchase_order_id == order.id).first():
             issues.append({"code": "PURCHASE_WITHOUT_PAYABLE", "description": f"Pedido #{order.id:06d} recebido sem obrigação financeira definida.", "reference_id": order.id, "severity": "BAIXA"})
     return issues
-
-
-def projections(db: Session, account_id: int, days: int) -> dict:
-    today = date.today()
-    limit = today + timedelta(days=days)
-    payables = money(sum((money(item.original_amount) - money(item.paid_amount) for item in db.query(Payable).filter(Payable.account_id == account_id, Payable.status != FinancialStatus.CANCELLED, Payable.due_date.between(today, limit)).all()), Decimal("0")))
-    debts = money(db.query(func.coalesce(func.sum(CustomerDebt.balance), 0)).filter(CustomerDebt.account_id == account_id, CustomerDebt.status.in_([DebtStatus.OPEN, DebtStatus.PARTIAL]), CustomerDebt.due_date.is_not(None), CustomerDebt.due_date.between(today, limit)).scalar())
-    manual = money(sum((money(item.original_amount) - money(item.received_amount) for item in db.query(FinancialReceivable).filter(FinancialReceivable.account_id == account_id, FinancialReceivable.status != FinancialStatus.CANCELLED, FinancialReceivable.due_date.between(today, limit)).all()), Decimal("0")))
-    return {"days": days, "payables": float(payables), "receivables": float(money(debts + manual))}
-
-
-def reconciliation_issues(db: Session, account_id: int) -> list[dict]:
-    issues = []
-    sales_without_payment = db.query(Sale).outerjoin(SalePayment).filter(
-        Sale.account_id == account_id,
-        Sale.status == SaleStatus.COMPLETED,
-        SalePayment.id.is_(None),
-    ).all()
-    for sale in sales_without_payment:
-        issues.append({"code": "SALE_WITHOUT_PAYMENT", "description": f"Venda #{sale.id:06d} concluída sem pagamento.", "reference_id": sale.id, "severity": "ALTA"})
-    payments_without_allocation = db.query(CustomerPayment).outerjoin(CustomerPayment.allocations).filter(
-        CustomerPayment.account_id == account_id,
-        CustomerPayment.allocations == None,  # noqa: E711
-    ).all()
-    for payment in payments_without_allocation:
-        issues.append({"code": "CREDIT_WITHOUT_REFERENCE", "description": "Recebimento de fiado sem alocação de dívida.", "reference_id": payment.id, "severity": "ALTA"})
-    received_orders = db.query(PurchaseOrder).outerjoin(Payable).filter(
-        PurchaseOrder.account_id == account_id,
-        PurchaseOrder.status.in_(["RECEBIDO", "PARCIALMENTE_RECEBIDO"]),
-        Payable.id.is_(None),
-    ).all()
-    for order in received_orders:
-        issues.append({"code": "PURCHASE_WITHOUT_PAYABLE", "description": f"Pedido #{order.id:06d} recebido sem obrigação financeira definida.", "reference_id": order.id, "severity": "MEDIA"})
-    return issues

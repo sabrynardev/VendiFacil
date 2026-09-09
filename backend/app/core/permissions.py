@@ -37,6 +37,13 @@ class PermissionCode(StrEnum):
     FINANCIAL_REVENUE_CREATE = "financial.revenue.create"
     FINANCIAL_PAYABLES = "financial.payables"
     FINANCIAL_RECEIVABLES = "financial.receivables"
+    ANALYTICS_VIEW = "analytics.view"
+    REPORT_SALES = "report.sales"
+    REPORT_INVENTORY = "report.inventory"
+    REPORT_FINANCIAL = "report.financial"
+    REPORT_CUSTOMERS = "report.customers"
+    REPORT_SUPPLIERS = "report.suppliers"
+    REPORT_EXPORT = "report.export"
     REPORTS_VIEW = "reports.view"
     PROFIT_VIEW = "profit.view"
     USERS_MANAGE = "users.manage"
@@ -80,6 +87,13 @@ PERMISSION_LABELS = {
     PermissionCode.FINANCIAL_REVENUE_CREATE: ("Criar receitas manuais", "Financeiro"),
     PermissionCode.FINANCIAL_PAYABLES: ("Gerenciar contas a pagar", "Financeiro"),
     PermissionCode.FINANCIAL_RECEIVABLES: ("Gerenciar contas a receber", "Financeiro"),
+    PermissionCode.ANALYTICS_VIEW: ("Visualizar analytics", "Relatórios"),
+    PermissionCode.REPORT_SALES: ("Relatórios de vendas", "Relatórios"),
+    PermissionCode.REPORT_INVENTORY: ("Relatórios de estoque", "Relatórios"),
+    PermissionCode.REPORT_FINANCIAL: ("Relatórios financeiros", "Relatórios"),
+    PermissionCode.REPORT_CUSTOMERS: ("Relatórios de clientes e fiado", "Relatórios"),
+    PermissionCode.REPORT_SUPPLIERS: ("Relatórios de fornecedores", "Relatórios"),
+    PermissionCode.REPORT_EXPORT: ("Exportar relatórios", "Relatórios"),
     PermissionCode.REPORTS_VIEW: ("Visualizar relatórios", "Relatórios"),
     PermissionCode.PROFIT_VIEW: ("Visualizar lucro", "Financeiro"),
     PermissionCode.USERS_MANAGE: ("Gerenciar funcionários", "Equipe"),
@@ -126,6 +140,13 @@ DEFAULT_PROFILE_PERMISSIONS = {
         PermissionCode.FINANCIAL_REVENUE_CREATE,
         PermissionCode.FINANCIAL_PAYABLES,
         PermissionCode.FINANCIAL_RECEIVABLES,
+        PermissionCode.ANALYTICS_VIEW,
+        PermissionCode.REPORT_SALES,
+        PermissionCode.REPORT_INVENTORY,
+        PermissionCode.REPORT_FINANCIAL,
+        PermissionCode.REPORT_CUSTOMERS,
+        PermissionCode.REPORT_SUPPLIERS,
+        PermissionCode.REPORT_EXPORT,
         PermissionCode.REPORTS_VIEW,
         PermissionCode.PROFIT_VIEW,
         PermissionCode.AUDIT_VIEW,

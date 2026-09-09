@@ -525,3 +525,72 @@ export interface RecurringExpense {
   active: boolean;
   created_at: string;
 }
+
+export interface AnalyticsProduct {
+  product_id: number;
+  product: string;
+  category: string;
+  quantity: number;
+  revenue: number;
+  cmv: number;
+  profit: number;
+  margin: number;
+  stock: number;
+  minimum_stock: number;
+  unit_cost: number;
+  sale_price: number;
+  average_daily_sales: number;
+  coverage_days?: number | null;
+  stock_cost_value: number;
+  potential_sale_value: number;
+  last_sale_at?: string | null;
+  days_without_sale?: number;
+  stopped_value?: number;
+}
+
+export interface AnalyticsOverview {
+  period: { start: string; end: string; previous_start: string; previous_end: string };
+  summary: FinancialSummary;
+  comparisons: Record<string, number | null>;
+  sales: {
+    timeline: Array<{ date: string; revenue: number; sales_count: number }>;
+    hours: Array<{ hour: number; label: string; revenue: number; sales_count: number }>;
+    payment_methods: Array<{ method: string; amount: number; participation: number }>;
+  };
+  products: {
+    products: AnalyticsProduct[];
+    top_quantity: AnalyticsProduct[];
+    top_revenue: AnalyticsProduct[];
+    top_profit: AnalyticsProduct[];
+    least_sold: AnalyticsProduct[];
+    stopped: AnalyticsProduct[];
+    abc: Array<{ product_id: number; product: string; revenue: number; percentage: number; cumulative_percentage: number; class: string }>;
+    categories: Array<{ category: string; quantity: number; revenue: number; cmv: number; profit: number; margin: number; participation: number }>;
+    inventory: { cost_value: number; potential_sale_value: number; turnover_simplified?: number | null; low_stock: AnalyticsProduct[]; excessive_stock: AnalyticsProduct[] };
+  };
+  credit: {
+    open_total: number;
+    overdue_total: number;
+    debtor_count: number;
+    largest_debt: number;
+    average_age_days: number;
+    receipts: number;
+    aging_buckets: Array<{ bucket: string; amount: number }>;
+    top_debtors: Array<{ customer_id: number; customer: string; balance: number }>;
+  };
+  customers: Array<{ customer_id: number; customer: string; purchases: number; revenue: number; average_ticket: number; last_purchase_at: string }>;
+  losses: {
+    total_value: number;
+    total_quantity: number;
+    impact_on_gross_profit?: number | null;
+    by_reason: Array<{ reason: string; quantity: number; value: number }>;
+    products: Array<{ product: string; quantity: number; value: number }>;
+    expiry_risk: Array<{ range: string; quantity: number; value: number }>;
+  };
+  suppliers: {
+    ranking: Array<{ supplier_id: number; supplier: string; total_purchased: number; orders: number; products: number; last_purchase_at?: string | null; concentration: number }>;
+    cost_changes: Array<{ product_id: number; product: string; supplier_id: number; supplier: string; first_cost: number; last_cost: number; variation: number; records: Array<{ date: string; cost: number }> }>;
+    comparisons: Array<{ product_id: number; product: string; suppliers: Array<{ supplier: string; cost: number; recorded_at: string }> }>;
+  };
+  expenses: Array<{ category: string; type: string; amount: number }>;
+}

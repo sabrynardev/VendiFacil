@@ -56,6 +56,7 @@ class InventoryLoss(Base):
     lot_id: Mapped[int | None] = mapped_column(ForeignKey("product_lots.id"), nullable=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     quantity: Mapped[float] = mapped_column(Numeric(12, 3), nullable=False)
+    unit_cost: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
     reason: Mapped[LossReason] = mapped_column(Enum(LossReason), nullable=False)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)

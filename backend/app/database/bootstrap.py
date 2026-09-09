@@ -93,6 +93,13 @@ def ensure_multitenant_schema(engine: Engine) -> None:
                     "UPDATE sale_items SET cost_price = COALESCE((SELECT cost_price FROM products WHERE products.id = sale_items.product_id), 0)"
                 )
             )
+        if "inventory_losses" in inspector.get_table_names() and not _has_column(inspector, "inventory_losses", "unit_cost"):
+            connection.execute(text("ALTER TABLE inventory_losses ADD COLUMN unit_cost NUMERIC(12, 2) NOT NULL DEFAULT 0"))
+            connection.execute(
+                text(
+                    "UPDATE inventory_losses SET unit_cost = COALESCE((SELECT unit_cost FROM product_lots WHERE product_lots.id = inventory_losses.lot_id), (SELECT cost_price FROM products WHERE products.id = inventory_losses.product_id), 0)"
+                )
+            )
 
         inspector = inspect(connection)
 
@@ -243,3 +250,15 @@ def ensure_multitenant_schema(engine: Engine) -> None:
         if "profiles" in inspector.get_table_names():
             connection.execute(text("CREATE INDEX IF NOT EXISTS ix_profiles_account_id ON profiles (account_id)"))
             connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_profiles_account_code ON profiles (account_id, code)"))
+        analytics_indexes = {
+            "sales": ["CREATE INDEX IF NOT EXISTS ix_sales_analytics_period ON sales (account_id, status, created_at)", "CREATE INDEX IF NOT EXISTS ix_sales_customer_period ON sales (account_id, customer_id, created_at)"],
+            "sale_items": ["CREATE INDEX IF NOT EXISTS ix_sale_items_product_sale ON sale_items (product_id, sale_id)"],
+            "customer_debts": ["CREATE INDEX IF NOT EXISTS ix_customer_debts_due_status ON customer_debts (account_id, status, due_date)"],
+            "inventory_losses": ["CREATE INDEX IF NOT EXISTS ix_inventory_losses_period ON inventory_losses (account_id, created_at)"],
+            "supplier_price_history": ["CREATE INDEX IF NOT EXISTS ix_supplier_prices_period ON supplier_price_history (account_id, product_id, supplier_id, recorded_at)"],
+            "payable_payments": ["CREATE INDEX IF NOT EXISTS ix_payable_payments_period ON payable_payments (account_id, payment_date)"],
+        }
+        for table_name, statements in analytics_indexes.items():
+            if table_name in inspector.get_table_names():
+                for statement in statements:
+                    connection.execute(text(statement))
