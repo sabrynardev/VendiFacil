@@ -34,7 +34,7 @@ export function SettingsPage() {
         <h2 className="text-lg font-semibold">Segurança e operação</h2>
         <ul className="mt-4 space-y-3 text-sm text-slate-600">
           <li>Usuários separados por perfis e permissões.</li>
-          <li>Parâmetros fiscais, caixas e preferências por cliente.</li>
+          <li>Dados operacionais separados por estabelecimento.</li>
           <li>Operações sensíveis registradas na auditoria.</li>
         </ul>
       </Card>

@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     seed_admin_email: str = "admin@marketpulse.dev"
     seed_admin_password: str = "admin123"
     auto_seed: bool = True
+    business_timezone: str = "America/Bahia"
     intelligence_default_window_days: int = 30
     intelligence_safety_stock_days: int = 2
     intelligence_purchase_horizon_days: int = 7

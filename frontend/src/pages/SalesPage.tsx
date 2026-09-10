@@ -10,9 +10,12 @@ import { formatCurrency, formatDateTime } from "../utils/format";
 import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
 import { useToast } from "../components/ToastProvider";
+import { useAuth } from "../contexts/AuthContext";
 
 export function SalesPage() {
   const toast = useToast();
+  const { user } = useAuth();
+  const canCancel = user?.permissions.includes("sales.cancel") ?? false;
   const [statusFilter, setStatusFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
   const { data, loading, setData } = useAsync(() => salesService.list({ status: statusFilter || undefined, payment_method: paymentFilter || undefined }), [statusFilter, paymentFilter]);
@@ -97,7 +100,7 @@ export function SalesPage() {
               </div>
             </Card>
             {selectedSale.cancellation_reason && <p className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700">Motivo do cancelamento: {selectedSale.cancellation_reason}</p>}
-            <div className="flex gap-3 print:hidden"><Button variant="secondary" onClick={() => window.print()}>Imprimir comprovante</Button>{selectedSale.status === "COMPLETED" && <Button variant="danger" onClick={async () => { const reason = window.prompt("Motivo do cancelamento:"); if (!reason) return; try { const updated = await salesService.cancel(selectedSale.id, reason); setSelectedSale(updated); setData((current) => current?.map((sale) => sale.id === updated.id ? updated : sale) ?? null); toast.push("Venda cancelada e estoque restaurado."); } catch (error) { toast.push(error instanceof Error ? error.message : "Não foi possível cancelar.", "error"); } }}>Cancelar venda</Button>}</div>
+            <div className="flex gap-3 print:hidden"><Button variant="secondary" onClick={() => window.print()}>Imprimir comprovante</Button>{canCancel && selectedSale.status === "COMPLETED" && <Button variant="danger" onClick={async () => { const reason = window.prompt("Motivo do cancelamento:"); if (!reason) return; try { const updated = await salesService.cancel(selectedSale.id, reason); setSelectedSale(updated); setData((current) => current?.map((sale) => sale.id === updated.id ? updated : sale) ?? null); toast.push("Venda cancelada e estoque restaurado."); } catch (error) { toast.push(error instanceof Error ? error.message : "Não foi possível cancelar.", "error"); } }}>Cancelar venda</Button>}</div>
           </div>
         </Modal>
       )}

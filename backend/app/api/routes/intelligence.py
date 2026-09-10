@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.dependencies import require_permission
 from app.core.config import get_settings
+from app.core.datetime import local_today
 from app.core.permissions import PermissionCode
 from app.database.session import get_db
 from app.models.user import User
@@ -29,7 +30,7 @@ def forecast(
     user: User = Depends(require_permission(PermissionCode.INTELLIGENCE_VIEW)),
 ):
     try:
-        return stock_forecast(db, user.account_id, end or date.today(), window_days)
+        return stock_forecast(db, user.account_id, end or local_today(), window_days)
     except IntelligenceValidationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -44,7 +45,7 @@ def insights(
     db: Session = Depends(get_db),
     user: User = Depends(require_permission(PermissionCode.INTELLIGENCE_VIEW)),
 ):
-    final = end or date.today()
+    final = end or local_today()
     initial = start or (final - timedelta(days=window_days - 1))
     try:
         result = generate_insights(db, user.account_id, initial, final, window_days)

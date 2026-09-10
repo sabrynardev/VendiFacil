@@ -3,10 +3,10 @@ version: "3.9"
 services:
   postgres:
     image: postgres:16-alpine
-      container_name: vendifacil-postgres
-      restart: unless-stopped
-      environment:
-        POSTGRES_DB: vendifacil
+    container_name: vendifacil-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: vendifacil
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:

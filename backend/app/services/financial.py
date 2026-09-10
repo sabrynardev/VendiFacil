@@ -1,10 +1,11 @@
 import calendar
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal, ROUND_HALF_UP
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.core.datetime import local_period_to_utc_bounds, local_today
 from app.models.cash_register import CashMovementType, CashRegister, CashRegisterStatus
 from app.models.customer import Customer, CustomerDebt, CustomerPayment, DebtStatus
 from app.models.financial import FinancialCategory, FinancialCategoryType, FinancialOrigin, FinancialReceivable, FinancialStatus, ManualRevenue, Payable, PayablePayment, ReceivableReceipt, RecurrenceFrequency, RecurringExpense
@@ -27,7 +28,7 @@ def money(value) -> Decimal:
 def period_bounds(start: date, end: date) -> tuple[datetime, datetime]:
     if end < start:
         raise FinancialValidationError("A data final deve ser igual ou posterior à data inicial.")
-    return datetime.combine(start, time.min), datetime.combine(end, time.max)
+    return local_period_to_utc_bounds(start, end)
 
 
 def get_category(db: Session, account_id: int, category_id: int, expected_type: FinancialCategoryType) -> FinancialCategory:
@@ -47,7 +48,7 @@ def payable_status(payable: Payable) -> str:
         return FinancialStatus.CANCELLED.value
     if money(payable.paid_amount) >= money(payable.original_amount):
         return FinancialStatus.PAID.value
-    if payable.due_date < date.today():
+    if payable.due_date < local_today():
         return "VENCIDA"
     if money(payable.paid_amount) > 0:
         return FinancialStatus.PARTIAL.value
@@ -59,7 +60,7 @@ def receivable_status(receivable: FinancialReceivable) -> str:
         return FinancialStatus.CANCELLED.value
     if money(receivable.received_amount) >= money(receivable.original_amount):
         return FinancialStatus.PAID.value
-    if receivable.due_date < date.today():
+    if receivable.due_date < local_today():
         return "VENCIDA"
     if money(receivable.received_amount) > 0:
         return FinancialStatus.PARTIAL.value
@@ -352,9 +353,10 @@ def financial_summary(db: Session, account_id: int, start: date, end: date) -> d
     payables_balance = money(db.query(func.coalesce(func.sum(Payable.original_amount - Payable.paid_amount), 0)).filter(Payable.account_id == account_id, Payable.status != FinancialStatus.CANCELLED).scalar())
     debt_balance = money(db.query(func.coalesce(func.sum(CustomerDebt.balance), 0)).filter(CustomerDebt.account_id == account_id, CustomerDebt.status.in_([DebtStatus.OPEN, DebtStatus.PARTIAL])).scalar())
     other_receivables = money(db.query(func.coalesce(func.sum(FinancialReceivable.original_amount - FinancialReceivable.received_amount), 0)).filter(FinancialReceivable.account_id == account_id, FinancialReceivable.status != FinancialStatus.CANCELLED).scalar())
-    overdue_payables = money(sum((money(item.original_amount) - money(item.paid_amount) for item in db.query(Payable).filter(Payable.account_id == account_id, Payable.status != FinancialStatus.CANCELLED, Payable.due_date < date.today()).all()), Decimal("0")))
-    overdue_debts = money(db.query(func.coalesce(func.sum(CustomerDebt.balance), 0)).filter(CustomerDebt.account_id == account_id, CustomerDebt.status.in_([DebtStatus.OPEN, DebtStatus.PARTIAL]), CustomerDebt.due_date.is_not(None), CustomerDebt.due_date < date.today()).scalar())
-    overdue_manual = money(sum((money(item.original_amount) - money(item.received_amount) for item in db.query(FinancialReceivable).filter(FinancialReceivable.account_id == account_id, FinancialReceivable.status != FinancialStatus.CANCELLED, FinancialReceivable.due_date < date.today()).all()), Decimal("0")))
+    today = local_today()
+    overdue_payables = money(sum((money(item.original_amount) - money(item.paid_amount) for item in db.query(Payable).filter(Payable.account_id == account_id, Payable.status != FinancialStatus.CANCELLED, Payable.due_date < today).all()), Decimal("0")))
+    overdue_debts = money(db.query(func.coalesce(func.sum(CustomerDebt.balance), 0)).filter(CustomerDebt.account_id == account_id, CustomerDebt.status.in_([DebtStatus.OPEN, DebtStatus.PARTIAL]), CustomerDebt.due_date.is_not(None), CustomerDebt.due_date < today).scalar())
+    overdue_manual = money(sum((money(item.original_amount) - money(item.received_amount) for item in db.query(FinancialReceivable).filter(FinancialReceivable.account_id == account_id, FinancialReceivable.status != FinancialStatus.CANCELLED, FinancialReceivable.due_date < today).all()), Decimal("0")))
 
     return {
         "period_start": start,
@@ -404,7 +406,7 @@ def cash_flow(db: Session, account_id: int, start: date, end: date) -> list[dict
 
 
 def projections(db: Session, account_id: int, days: int) -> dict:
-    start = date.today()
+    start = local_today()
     end = start + timedelta(days=days)
     payables = money(db.query(func.coalesce(func.sum(Payable.original_amount - Payable.paid_amount), 0)).filter(
         Payable.account_id == account_id,

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.schemas.account import AccountResponse
 from app.models.user import UserRole
@@ -17,6 +17,8 @@ class TokenResponse(BaseModel):
 
 
 class CurrentUserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     account_id: int
     name: str
@@ -27,6 +29,3 @@ class CurrentUserResponse(BaseModel):
     account: AccountResponse
     profile_name: str
     permissions: list[str]
-
-    class Config:
-        from_attributes = True

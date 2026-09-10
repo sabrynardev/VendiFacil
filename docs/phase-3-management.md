@@ -83,7 +83,7 @@
 ## Pendências
 
 - A saída automática de saldo dos lotes no PDV por FEFO está preparada pela ordenação de validade, mas será integrada quando a operação de venda por lote for habilitada.
-- O SQLite local é migrado automaticamente. Uma consolidação futura do histórico Alembic legado será necessária antes de atualizar instalações PostgreSQL criadas apenas pela migration `0001_initial`.
+- O baseline Alembic atual cria o esquema completo em instalações novas. Bancos PostgreSQL criados por versões anteriores ainda exigem migração assistida antes da atualização.
 
 ## Próxima fase
 

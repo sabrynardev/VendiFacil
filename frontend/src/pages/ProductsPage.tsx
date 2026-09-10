@@ -8,6 +8,7 @@ import { EmptyState } from "../components/EmptyState";
 import { Modal } from "../components/Modal";
 import { ProductForm } from "../components/ProductForm";
 import { useToast } from "../components/ToastProvider";
+import { useAuth } from "../contexts/AuthContext";
 import { useAsync } from "../hooks/useAsync";
 import { catalogService } from "../services/catalog";
 import type { Product } from "../types";
@@ -15,6 +16,8 @@ import { formatCurrency } from "../utils/format";
 
 export function ProductsPage() {
   const toast = useToast();
+  const { user } = useAuth();
+  const canManage = user?.permissions.includes("products.manage") ?? false;
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [statusFilter, setStatusFilter] = useState("active");
@@ -86,10 +89,10 @@ export function ProductsPage() {
           <h1 className="page-title">Produtos</h1>
           <p className="page-subtitle">Cadastro com preço, margem, fornecedor e status automático de estoque.</p>
         </div>
-        <Button onClick={() => setOpen(true)}>
+        {canManage && <Button onClick={() => setOpen(true)}>
           <Plus size={16} className="mr-2" />
           Novo produto
-        </Button>
+        </Button>}
       </div>
       <Card className="grid gap-4 md:grid-cols-4">
         <label className="space-y-2 text-sm md:col-span-2">
@@ -127,7 +130,7 @@ export function ProductsPage() {
         ) : data.products.length === 0 ? (
           <EmptyState title="Nenhum produto cadastrado" description="Cadastre o primeiro item para começar a vender." />
         ) : (
-          <DataTable headers={["Nome", "Marca", "SKU", "Categoria", "Custo", "Venda", "Margem", "Estoque", "Status", "Ações"]}>
+          <DataTable headers={["Nome", "Marca", "SKU", "Categoria", "Custo", "Venda", "Margem", "Estoque", "Status", ...(canManage ? ["Ações"] : [])]}>
             {data.products.map((product) => (
               <tr key={product.id}>
                 <td className="px-4 py-3">
@@ -146,7 +149,7 @@ export function ProductsPage() {
                 <td className="px-4 py-3">
                   <Badge label={product.stock_status} />
                 </td>
-                <td className="px-4 py-3">
+                {canManage && <td className="px-4 py-3">
                   <div className="flex gap-2">
                     <Button variant="ghost" onClick={() => { setEditing(product); setOpen(true); }}>
                       <Pencil size={16} />
@@ -155,7 +158,7 @@ export function ProductsPage() {
                       <Trash2 size={16} />
                     </Button>
                   </div>
-                </td>
+                </td>}
               </tr>
             ))}
           </DataTable>

@@ -5,6 +5,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import require_permission
+from app.core.datetime import local_today, utc_to_local
 from app.core.permissions import PermissionCode
 from app.database.session import get_db
 from app.models.customer import Customer, DebtStatus
@@ -19,7 +20,7 @@ router = APIRouter()
 def serialize_customer(db: Session, customer: Customer, details: bool = False) -> CustomerResponse:
     balance = customer_balance(customer)
     total, average, last_purchase, sales = customer_sales_summary(db, customer)
-    debts = [CustomerDebtResponse(id=debt.id, sale_id=debt.sale_id, sale_number=f"#{debt.sale_id:06d}", amount=float(debt.amount), balance=float(debt.balance), due_date=debt.due_date, status=debt.status, is_overdue=debt_is_overdue(debt), days_open=(date.today()-debt.created_at.date()).days, created_at=debt.created_at) for debt in customer.debts] if details else []
+    debts = [CustomerDebtResponse(id=debt.id, sale_id=debt.sale_id, sale_number=f"#{debt.sale_id:06d}", amount=float(debt.amount), balance=float(debt.balance), due_date=debt.due_date, status=debt.status, is_overdue=debt_is_overdue(debt), days_open=(local_today()-utc_to_local(debt.created_at).date()).days, created_at=debt.created_at) for debt in customer.debts] if details else []
     payments = [CustomerPaymentResponse(id=item.id, amount=float(item.amount), method=item.method, responsible_name=item.received_by.name, balance_before=float(item.balance_before), balance_after=float(item.balance_after), notes=item.notes, created_at=item.created_at) for item in sorted(customer.payments, key=lambda entry: entry.created_at, reverse=True)] if details else []
     overdue = sum(float(debt.balance) for debt in customer.debts if debt_is_overdue(debt))
     sale_history = [CustomerSaleResponse(id=sale.id, number=f"#{sale.id:06d}", total=float(sale.total), payment_method=sale.payment_method, status=sale.status.value, created_at=sale.created_at) for sale in sales] if details else []

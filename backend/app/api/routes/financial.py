@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import require_any_permission, require_permission
+from app.core.datetime import local_today
 from app.core.permissions import PermissionCode
 from app.database.session import get_db
 from app.models.customer import CustomerDebt, DebtStatus
@@ -36,7 +37,7 @@ def serialize_payable(payable: Payable) -> PayableResponse:
         due_date=payable.due_date,
         paid_at=payable.paid_at,
         status=payable_status(payable),
-        is_overdue=payable.status != FinancialStatus.CANCELLED and balance > 0 and payable.due_date < date.today(),
+        is_overdue=payable.status != FinancialStatus.CANCELLED and balance > 0 and payable.due_date < local_today(),
         payment_method=payable.payment_method,
         notes=payable.notes,
         origin=payable.origin.value,
@@ -52,7 +53,7 @@ def serialize_revenue(item: ManualRevenue) -> ManualRevenueResponse:
 
 def serialize_receivable(item: FinancialReceivable) -> ReceivableResponse:
     balance = max(float(item.original_amount) - float(item.received_amount), 0)
-    return ReceivableResponse(id=f"manual-{item.id}", source_id=item.id, source="MANUAL", description=item.description, customer_id=item.customer_id, customer_name=item.customer.name if item.customer else None, original_amount=float(item.original_amount), received_amount=float(item.received_amount), balance=balance, due_date=item.due_date, status=receivable_status(item), is_overdue=item.status != FinancialStatus.CANCELLED and balance > 0 and item.due_date < date.today(), created_at=item.created_at)
+    return ReceivableResponse(id=f"manual-{item.id}", source_id=item.id, source="MANUAL", description=item.description, customer_id=item.customer_id, customer_name=item.customer.name if item.customer else None, original_amount=float(item.original_amount), received_amount=float(item.received_amount), balance=balance, due_date=item.due_date, status=receivable_status(item), is_overdue=item.status != FinancialStatus.CANCELLED and balance > 0 and item.due_date < local_today(), created_at=item.created_at)
 
 
 @router.get("/categories", response_model=list[FinancialCategoryResponse])
@@ -149,7 +150,7 @@ def list_receivables(include_paid: bool = False, db: Session = Depends(get_db), 
     results = [serialize_receivable(item) for item in db.query(FinancialReceivable).filter(FinancialReceivable.account_id == user.account_id).all()]
     debts = db.query(CustomerDebt).filter(CustomerDebt.account_id == user.account_id).all()
     for debt in debts:
-        received=float(debt.amount)-float(debt.balance); overdue=debt.due_date is not None and debt.due_date < date.today() and float(debt.balance)>0
+        received=float(debt.amount)-float(debt.balance); overdue=debt.due_date is not None and debt.due_date < local_today() and float(debt.balance)>0
         results.append(ReceivableResponse(id=f"fiado-{debt.id}",source_id=debt.id,source="FIADO",description=f"Venda #{debt.sale_id:06d}",customer_id=debt.customer_id,customer_name=debt.customer.name,original_amount=float(debt.amount),received_amount=received,balance=float(debt.balance),due_date=debt.due_date,status="VENCIDA" if overdue else debt.status.value,is_overdue=overdue,created_at=debt.created_at))
     results.sort(key=lambda item: item.created_at, reverse=True)
     return results if include_paid else [item for item in results if item.balance > 0 and item.status not in {FinancialStatus.CANCELLED.value, DebtStatus.REVERSED.value}]
@@ -188,7 +189,7 @@ def add_recurring(payload: RecurringExpenseCreate, db: Session = Depends(get_db)
 
 @router.post("/recurring/generate", response_model=list[PayableResponse])
 def generate_recurring(through: date | None = Query(default=None), db: Session = Depends(get_db), user: User = Depends(require_permission(PermissionCode.FINANCIAL_PAYABLES))):
-    target=through or date.today(); generated=generate_recurring_payables(db,user,target); log_audit(db,user,action="GENERATE",entity_type="RECURRING_EXPENSE",entity_id=None,description=f"Gerou {len(generated)} conta(s) recorrente(s) até {target}."); db.commit(); return [serialize_payable(item) for item in generated]
+    target=through or local_today(); generated=generate_recurring_payables(db,user,target); log_audit(db,user,action="GENERATE",entity_type="RECURRING_EXPENSE",entity_id=None,description=f"Gerou {len(generated)} conta(s) recorrente(s) até {target}."); db.commit(); return [serialize_payable(item) for item in generated]
 
 
 @router.get("/summary", response_model=FinancialSummaryResponse)

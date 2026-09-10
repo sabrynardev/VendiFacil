@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProfilePermissionsUpdate(BaseModel):
@@ -6,21 +6,18 @@ class ProfilePermissionsUpdate(BaseModel):
 
 
 class PermissionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     code: str
     name: str
     module: str
 
-    class Config:
-        from_attributes = True
-
-
 class ProfileResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: str
     code: str
     active: bool
     is_system: bool
     permissions: list[PermissionResponse]
-
-    class Config:
-        from_attributes = True

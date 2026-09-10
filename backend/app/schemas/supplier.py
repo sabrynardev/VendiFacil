@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class SupplierBase(BaseModel):
@@ -26,12 +26,11 @@ class SupplierUpdate(SupplierBase):
 
 
 class SupplierResponse(SupplierBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     # Instalações antigas podem conter domínios locais usados nos dados de demonstração.
     email: str | None = None
     created_at: datetime
     updated_at: datetime
     products_count: int = 0
-
-    class Config:
-        from_attributes = True

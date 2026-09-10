@@ -7,6 +7,7 @@ import { EmptyState } from "../components/EmptyState";
 import { Modal } from "../components/Modal";
 import { SupplierForm } from "../components/SupplierForm";
 import { useToast } from "../components/ToastProvider";
+import { useAuth } from "../contexts/AuthContext";
 import { useAsync } from "../hooks/useAsync";
 import { catalogService } from "../services/catalog";
 import { purchaseService } from "../services/management";
@@ -14,6 +15,8 @@ import type { ProductSupplier, Supplier } from "../types";
 
 export function SuppliersPage() {
   const toast = useToast();
+  const { user } = useAuth();
+  const canManage = user?.permissions.includes("suppliers.manage") ?? false;
   const { data, loading, setData } = useAsync(() => catalogService.listSuppliers(), []);
   const [editing, setEditing] = useState<Supplier | null>(null);
   const [open, setOpen] = useState(false);
@@ -71,10 +74,10 @@ export function SuppliersPage() {
           <h1 className="page-title">Fornecedores</h1>
           <p className="page-subtitle">Gestão de contatos, relacionamento com produtos e base de compras futuras.</p>
         </div>
-        <Button onClick={() => setOpen(true)}>
+        {canManage && <Button onClick={() => setOpen(true)}>
           <Plus size={16} className="mr-2" />
           Novo fornecedor
-        </Button>
+        </Button>}
       </div>
       <Card>
         {loading || !data ? (
@@ -92,13 +95,13 @@ export function SuppliersPage() {
                 <td className="px-4 py-3">{new Date(supplier.created_at).toLocaleDateString("pt-BR")}</td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
-                    <Button variant="ghost" onClick={() => { setEditing(supplier); setOpen(true); }}>
+                    {canManage && <Button variant="ghost" onClick={() => { setEditing(supplier); setOpen(true); }}>
                       <Pencil size={16} />
-                    </Button>
-                    <Button variant="ghost" onClick={() => void openLinks(supplier)}><Link2 size={16} /></Button>
-                    <Button variant="ghost" onClick={() => handleDelete(supplier)}>
+                    </Button>}
+                    {canManage && <Button variant="ghost" onClick={() => void openLinks(supplier)}><Link2 size={16} /></Button>}
+                    {canManage && <Button variant="ghost" onClick={() => handleDelete(supplier)}>
                       <Trash2 size={16} />
-                    </Button>
+                    </Button>}
                   </div>
                 </td>
               </tr>

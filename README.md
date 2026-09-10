@@ -1,432 +1,181 @@
-# VendiFácil
+# VendiFácil Pro
 
-Sistema completo de PDV para mercadinho com frontend em React + TypeScript e backend em FastAPI, pensado para demonstração profissional e evolução real do produto.
+PDV e gestão para mercadinhos e pequenos varejos, desenvolvido com React, TypeScript, FastAPI e SQLAlchemy. O sistema reúne operação de caixa, estoque, compras, clientes, fiado, financeiro, analytics, recomendações determinísticas e contingência offline.
 
-![VendiFácil Cover](docs/repo-cover.svg)
+![VendiFácil Pro](docs/repo-cover.svg)
 
-## Destaques
+## Estado atual
 
-- Fluxo de venda funcional de ponta a ponta com autenticação, carrinho, pagamento simulado, baixa de estoque e histórico
-- Dashboard com indicadores operacionais, alertas de ruptura e visual pronto para demonstração
-- Backend organizado em camadas com FastAPI, SQLAlchemy, Pydantic, JWT e testes automatizados
-- Frontend moderno com dark mode, navegação responsiva e páginas preparadas para portfólio
-- Estrutura clara para evolução futura com PostgreSQL, relatórios, previsão de estoque e múltiplos perfis
+O projeto é uma demonstração funcional avançada e um piloto local viável. Os fluxos críticos possuem persistência e regras no backend; não são telas mockadas. Ainda não deve ser tratado como SaaS público ou solução fiscal pronta sem concluir os itens descritos em [Produção](#produção).
 
-## Demo rápida
+Funciona hoje:
 
-1. Faça login com `admin@marketpulse.dev` e `admin123`
-2. Abra `Produtos` para visualizar o catálogo seedado
-3. Vá para `Caixa` e pesquise por um item via nome, SKU ou código de barras
-4. Adicione duas unidades ao carrinho
-5. Finalize a venda com `PIX`
-6. Valide o reflexo da operação em `Vendas`, `Estoque` e `Dashboard`
+- contas isoladas por estabelecimento, login JWT, perfis e permissões;
+- produtos, categorias, fornecedores, compras, recebimentos e histórico de preços;
+- PDV, caixa, pagamento misto, troco, venda em espera, cancelamento e comprovante não fiscal;
+- estoque transacional, lotes, validade, perdas e inventários;
+- clientes, limite de crédito, fiado e pagamentos parciais;
+- receitas, despesas, contas, recorrências, fluxo de caixa e indicadores gerenciais;
+- relatórios, Curva ABC, produtos parados, margens e exportação CSV;
+- Vendi Inteligente e Pergunte ao Vendi com consultas determinísticas aos dados reais;
+- fila offline de vendas com idempotência, conflito auditável e sincronização;
+- auditoria das operações sensíveis.
 
-## Página de apresentação comercial
+## Screenshots
 
-Além da área autenticada, o projeto agora possui uma rota pública para demonstração comercial:
+| Dashboard | Produtos |
+|---|---|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Produtos](docs/screenshots/products.png) |
 
-- [http://localhost:5173/apresentacao](http://localhost:5173/apresentacao)
+| Estoque | Caixa |
+|---|---|
+| ![Estoque](docs/screenshots/inventory.png) | ![Caixa](docs/screenshots/cashier.png) |
 
-Essa página foi pensada para:
+| Finalização | Histórico de vendas |
+|---|---|
+| ![Finalização](docs/screenshots/checkout-modal.png) | ![Vendas](docs/screenshots/sales.png) |
 
-- captar clientes locais
-- apresentar os benefícios do sistema sem login
-- mostrar planos sugeridos de implantação e suporte
-- servir como base para anúncios, WhatsApp e reuniões presenciais
+## Stack e arquitetura
 
-## Evolução do produto
-
-A Fase 1 está documentada em [docs/phase-1-foundation.md](docs/phase-1-foundation.md). A operação completa da Fase 2, incluindo PDV, pagamentos, caixa, estoque e roteiro de validação, está em [docs/phase-2-operation.md](docs/phase-2-operation.md).
-
-A gestão da Fase 3, com fornecedores, compras, recebimentos, lotes, validade, inventários, clientes e fiado, está documentada em [docs/phase-3-management.md](docs/phase-3-management.md).
-
-O módulo da Fase 4, com contas, fluxo de caixa, CMV, lucro e fechamento gerencial, está documentado em [docs/phase-4-financial.md](docs/phase-4-financial.md).
-
-O módulo da Fase 5, com dashboard gerencial, Curva ABC, margens, estoque parado, fiado, fornecedores, perdas e exportação CSV, está documentado em [docs/phase-5-analytics.md](docs/phase-5-analytics.md).
-
-O módulo da Fase 6, com previsão de reposição, central de insights e Pergunte ao Vendi em modo seguro e determinístico, está documentado em [docs/phase-6-intelligence.md](docs/phase-6-intelligence.md).
-
-A Fase 7 adiciona operação offline segura no PDV, fila idempotente, detecção real de conexão, conflitos auditáveis, backup e endurecimento de produção. Consulte [docs/phase-7-resilience.md](docs/phase-7-resilience.md).
-
-## Por que este projeto é forte para portfólio
-
-- Resolve um problema real de operação comercial, em vez de ser apenas um CRUD genérico
-- Mostra integração entre frontend, backend, autenticação, banco de dados e regras de negócio
-- Demonstra cuidado com UX, arquitetura e consistência visual
-- Inclui validação automatizada do fluxo crítico de negócio
-
-## Visão geral
-
-O VendiFácil foi estruturado como um monorepo com:
-
-- `frontend/`: interface responsiva com dark mode, sidebar, dashboard, PDV, produtos, estoque, vendas, fornecedores e relatórios.
-- `backend/`: API REST com autenticação JWT, regras de venda transacional, seed inicial, estoque, dashboard e relatórios.
-- `docker-compose.yml`: PostgreSQL opcional para rodar localmente.
-
-## Funcionalidades implementadas
-
-- Login com JWT e proteção de rotas
-- Perfis `ADMIN`, `CAIXA` e `ESTOQUE`
-- Dashboard com:
-  - faturamento diário
-  - vendas do dia
-  - ticket médio
-  - alertas de estoque
-  - gráfico de faturamento
-  - vendas por categoria
-  - formas de pagamento
-  - ranking de produtos
-- PDV com:
-  - busca por código de barras, SKU ou nome
-  - carrinho com ajuste de quantidade
-  - desconto por item e desconto geral
-  - modal de finalização
-  - pagamento por PIX, dinheiro, débito e crédito
-  - atalho `F2`, `F4`, `ESC` e `Delete`
-- CRUD de produtos
-- CRUD de fornecedores
-- Tela de estoque com:
-  - status automático
-  - previsão de ruptura
-  - sugestão de reposição para 15 dias
-  - movimentações recentes
-- Histórico de vendas com detalhamento
-- Relatórios resumidos por período
-- Seed com categorias, fornecedores, produtos e vendas históricas
-- Migração inicial com Alembic
-
-## Arquitetura
+- Frontend: React 19, TypeScript, Vite, Tailwind CSS, Recharts e IndexedDB.
+- Backend: FastAPI, Pydantic, SQLAlchemy e JWT.
+- Banco: PostgreSQL recomendado; SQLite suportado para desenvolvimento e testes.
+- Migração: Alembic com baseline completo do esquema atual.
+- Estrutura: rotas finas, serviços de negócio, modelos, schemas e componentes reutilizáveis.
 
 ```text
-vendifacil/
-├── backend/
-│   ├── alembic/
-│   ├── app/
-│   │   ├── api/
-│   │   ├── auth/
-│   │   ├── core/
-│   │   ├── database/
-│   │   ├── models/
-│   │   ├── schemas/
-│   │   ├── services/
-│   │   ├── main.py
-│   │   └── seed.py
-│   ├── requirements.txt
-│   └── smoke_test.py
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── contexts/
-│   │   ├── hooks/
-│   │   ├── layouts/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   ├── types/
-│   │   └── utils/
-│   ├── package.json
-│   └── vite.config.ts
-├── .env.example
-├── docker-compose.yml
-└── README.md
+frontend/src/       páginas, componentes, contextos, serviços e tipos
+backend/app/api/    endpoints e autorização
+backend/app/services regras de negócio e transações
+backend/app/models/ entidades SQLAlchemy
+backend/tests/      testes de integração e regras críticas
+docs/               documentação por fase, auditoria e material comercial
 ```
 
-## Stack
+## Instalação local
 
-- Frontend: React, TypeScript, Vite, Tailwind CSS, Recharts, Lucide React
-- Backend: FastAPI, SQLAlchemy, Pydantic
-- Auth: JWT
-- Banco: PostgreSQL
-- Migração: Alembic
+Pré-requisitos: Python 3.11+, Node.js 20+ e, para PostgreSQL, Docker Desktop ou uma instância compatível.
 
-## Como instalar
+### 1. Configuração
 
-### 1. Banco de dados
-
-Opção com Docker:
-
-```bash
-docker compose up -d
-```
-
-Banco esperado:
-
-- host: `localhost`
-- porta: `5432`
-- database: `vendifacil`
-- user: `postgres`
-- password: `postgres`
-
-### 2. Variáveis de ambiente
-
-Na raiz do projeto:
-
-```bash
-cp .env.example backend/.env
-cp frontend/.env.example frontend/.env
-```
-
-Se estiver no Windows PowerShell:
+No PowerShell, na raiz do projeto:
 
 ```powershell
 Copy-Item .env.example backend/.env
 Copy-Item frontend/.env.example frontend/.env
 ```
 
-O arquivo [backend/.env.example](/F:/pdv/backend/.env.example) já vem pronto para PostgreSQL local com Docker.
+Para usar PostgreSQL local:
 
-### 3. Backend
-
-```bash
-cd backend
-python -m venv .venv
-. .venv/bin/activate
-pip install -r requirements.txt
-alembic upgrade head
-uvicorn app.main:app --reload
+```powershell
+docker compose up -d
 ```
 
-No Windows PowerShell:
+O `docker-compose.yml` cria o banco `vendifacil` em `localhost:5432`.
+
+### 2. Backend
 
 ```powershell
 cd backend
 python -m venv .venv
 .venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-alembic upgrade head
-uvicorn app.main:app --reload
+python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
+python -m alembic upgrade head
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Para rodar os testes do backend:
+API: `http://127.0.0.1:8000`
 
-```bash
-cd backend
-pip install -r requirements-dev.txt
-pytest
-```
+Swagger: `http://127.0.0.1:8000/docs`
 
-### 4. Frontend
+Saúde: `http://127.0.0.1:8000/health`
 
-```bash
+### 3. Frontend
+
+Em outro terminal:
+
+```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
-## Comandos principais
+Aplicação: `http://localhost:5173`
 
-Backend:
+## Demonstração
 
-```bash
+Com `APP_ENVIRONMENT=development` e `AUTO_SEED=true`, o seed local cria dados realistas e usuários de demonstração definidos pelas variáveis `SEED_ADMIN_EMAIL` e `SEED_ADMIN_PASSWORD`. O operador demonstrativo é criado somente nesse seed. Nunca use essas credenciais ou mantenha o seed ativo em produção.
+
+Roteiro sugerido:
+
+1. Entre com o administrador configurado no ambiente.
+2. Abra um caixa e informe o saldo inicial.
+3. Busque um produto por nome, SKU ou código de barras.
+4. Finalize uma venda com dinheiro, PIX, cartão ou pagamento misto.
+5. Confira venda, caixa, estoque, dashboard e auditoria.
+6. Explore compras, clientes, financeiro, relatórios e Vendi Inteligente.
+7. Acesse `http://localhost:5173/apresentacao` para a página comercial pública.
+
+## Validação
+
+```powershell
 cd backend
-uvicorn app.main:app --reload
-```
+.venv\Scripts\python.exe -m pytest -q
+.venv\Scripts\python.exe -m pip check
 
-Frontend:
-
-```bash
-cd frontend
-npm run dev
-```
-
-Build do frontend:
-
-```bash
-cd frontend
+cd ..\frontend
 npm run build
+npm audit --omit=dev --audit-level=high
 ```
 
-Smoke test do fluxo principal:
+A auditoria da Fase 8 executou 58 testes, compilou o frontend e validou uma criação limpa das 38 tabelas via Alembic. Consulte [docs/phase-8-final-audit.md](docs/phase-8-final-audit.md).
 
-```bash
-cd backend
-python smoke_test.py
+## Configuração de produção
+
+Defina pelo menos:
+
+```env
+APP_ENVIRONMENT=production
+AUTO_SEED=false
+JWT_SECRET_KEY=uma-chave-aleatoria-com-32-ou-mais-caracteres
+DATABASE_URL=postgresql+psycopg://usuario:senha@host:5432/vendifacil
+BACKEND_CORS_ORIGINS=https://seu-dominio.example
+BUSINESS_TIMEZONE=America/Bahia
 ```
 
-## Usuários padrão
+O backend recusa a inicialização em produção quando a chave JWT é fraca ou o seed está ativo.
 
-- Admin: `admin@marketpulse.dev` / `admin123`
-- Caixa: `sabrina@marketpulse.dev` / `caixa123`
+## Produção
 
-## Endpoints principais
+Antes de uso comercial amplo, ainda são necessários:
 
-### Auth
+- HTTPS, domínio, proxy reverso e deploy com monitoramento;
+- backups automáticos externos e teste periódico de restauração;
+- migração assistida para bancos PostgreSQL criados por versões antigas do projeto;
+- armazenamento de sessão mais resistente a XSS, revogação/rotação de tokens e recuperação de senha;
+- rate limiting compartilhado entre instâncias e proteção adicional no cadastro público;
+- observabilidade centralizada, alertas, política de retenção e tratamento de dados pessoais;
+- testes E2E de navegador, carga, concorrência real e validação em dispositivos de caixa;
+- estratégia de reconciliação operacional para conflitos offline e limpeza segura do dispositivo;
+- integração fiscal, TEF/PIX bancário e homologações, caso o produto passe a emitir documentos ou processar pagamentos.
 
-- `POST /auth/login`
-- `GET /auth/me`
+O comprovante atual é interno e não possui validade fiscal. O financeiro é gerencial e não substitui escrituração contábil.
 
-### Products
+## Documentação
 
-- `GET /products`
-- `GET /products/{id}`
-- `GET /products/barcode/{barcode}`
-- `POST /products`
-- `PUT /products/{id}`
-- `DELETE /products/{id}`
+- [Auditoria final e prontidão](docs/phase-8-final-audit.md)
+- [Fase 1: Fundação](docs/phase-1-foundation.md)
+- [Fase 2: Operação](docs/phase-2-operation.md)
+- [Fase 3: Gestão](docs/phase-3-management.md)
+- [Fase 4: Financeiro](docs/phase-4-financial.md)
+- [Fase 5: Analytics](docs/phase-5-analytics.md)
+- [Fase 6: Inteligência](docs/phase-6-intelligence.md)
+- [Fase 7: Resiliência](docs/phase-7-resilience.md)
+- [Roteiro de demonstração](docs/demo-script.md)
+- [Playbook de venda local](docs/local-sales-playbook.md)
+- [Estudo de caso para portfólio](docs/portfolio-case-study.md)
 
-### Sales
+## Licença e suporte
 
-- `GET /sales`
-- `GET /sales/{id}`
-- `POST /sales`
-
-### Inventory
-
-- `GET /inventory`
-- `GET /inventory/alerts`
-- `GET /inventory/predictions`
-- `GET /inventory/movements`
-- `POST /inventory/movement`
-
-### Suppliers
-
-- `GET /suppliers`
-- `POST /suppliers`
-- `PUT /suppliers/{id}`
-- `DELETE /suppliers/{id}`
-
-### Dashboard
-
-- `GET /dashboard/summary`
-- `GET /dashboard/revenue`
-- `GET /dashboard/top-products`
-- `GET /dashboard/payment-methods`
-- `GET /dashboard/category-sales`
-
-### Reports
-
-- `GET /reports?period=today|7d|30d`
-
-## Como cada parte funciona
-
-- `Auth`: login gera JWT e o frontend persiste o token no `localStorage`.
-- `PDV`: busca o produto, adiciona ao carrinho e envia a venda para a API.
-- `Venda`: o backend valida estoque, cria venda e itens, reduz saldo e registra movimentação.
-- `Estoque`: calcula status, média diária, previsão de ruptura e recomendação de compra.
-- `Dashboard`: agrega vendas históricas para cards e gráficos.
-
-## PostgreSQL em definitivo
-
-Para usar PostgreSQL como base principal do projeto:
-
-1. Suba o banco com `docker compose up -d` na raiz.
-2. Copie `backend/.env.example` para `backend/.env`.
-3. Confirme que `DATABASE_URL` aponta para `postgresql+psycopg://postgres:postgres@localhost:5432/marketpulse`.
-4. Rode `alembic upgrade head`.
-5. Inicie o backend.
-
-Observação:
-
-- O backend ainda aceita SQLite para testes e validações rápidas.
-- Em ambiente de demonstração mais sério, prefira PostgreSQL.
-
-## Testes automatizados
-
-Foram adicionados testes em [backend/tests](/F:/pdv/backend/tests):
-
-- autenticação com sucesso e falha
-- busca de produto por código de barras
-- venda com baixa automática de estoque
-- registro de movimentação
-- cálculo de troco em dinheiro
-- bloqueio de venda sem estoque suficiente
-
-Execução:
-
-```bash
-cd backend
-pip install -r requirements-dev.txt
-pytest
-```
-
-## Validação executada
-
-Execuções realizadas nesta entrega:
-
-- `python -m compileall backend/app`
-- `python -c "from fastapi.testclient import TestClient; ... /health ..."`
-- `python smoke_test.py`
-- `npm run build`
-
-O smoke test confirmou:
-
-- login
-- listagem de produtos
-- busca por código de barras
-- venda com duas unidades
-- baixa automática de estoque
-- registro de movimentação
-- atualização do dashboard
-- presença da venda no histórico
-
-## Screenshots
-
-### Dashboard
-
-![Dashboard](docs/screenshots/dashboard.png)
-
-### Produtos
-
-![Produtos](docs/screenshots/products.png)
-
-### Estoque
-
-![Estoque](docs/screenshots/inventory.png)
-
-### Caixa
-
-![Caixa](docs/screenshots/cashier.png)
-
-### Finalização de venda
-
-![Checkout](docs/screenshots/checkout-modal.png)
-
-### Histórico de vendas
-
-![Vendas](docs/screenshots/sales.png)
-
-Sugestão de sequência para capturas:
-
-- Login
-- Dashboard
-- Caixa com carrinho preenchido
-- Histórico de vendas
-- Estoque com alertas e previsão
-
-## Roadmap
-
-### V1
-
-- autenticação
-- produtos
-- caixa
-- vendas
-- estoque
-
-### V2
-
-- fornecedores
-- dashboard
-- relatórios
-
-### V3
-
-- previsão de estoque
-- sugestão de compras
-
-### V4
-
-- emissão NFC-e
-- integração PIX real
-- multi-loja
-- múltiplos caixas
-- leitor de balança
-- integração ERP
-- aplicativo mobile
-- fidelidade
-- relatórios avançados
-- inteligência artificial
-
-## Observações
-
-- NFC-e e pagamentos reais não foram implementados nesta versão.
-- O projeto está pronto para rodar com PostgreSQL, mas o smoke test local foi executado com SQLite isolado para validação rápida do fluxo sem afetar a base principal.
+O repositório não possui licença pública definida. Contato comercial: Sabryna R DEV, `sabrynxr@gmail.com`, `(75) 98883-4910`.

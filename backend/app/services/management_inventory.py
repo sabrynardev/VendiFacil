@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
+from app.core.datetime import local_today
 from app.models.management_inventory import InventoryCount, InventoryCountItem, InventoryCountStatus, InventoryLoss, LotStatus, ProductLot
 from app.models.product import Product
 from app.models.stock_movement import StockMovementType
@@ -19,7 +20,7 @@ class ManagementInventoryError(Exception):
 def expiry_state(expiration_date: date | None) -> tuple[str, int | None]:
     if expiration_date is None:
         return "SEM_VALIDADE", None
-    days = (expiration_date - date.today()).days
+    days = (expiration_date - local_today()).days
     if days < 0: return "VENCIDO", days
     if days == 0: return "VENCE_HOJE", days
     if days <= 3: return "ATE_3_DIAS", days

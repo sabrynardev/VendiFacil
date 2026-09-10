@@ -1,8 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.core.datetime import local_period_to_utc_bounds, local_today
 from app.models.category import Category
 from app.models.product import Product
 from app.models.sale import Sale, SaleItem, SaleStatus
@@ -10,10 +11,8 @@ from app.services.inventory import product_status
 
 
 def _day_bounds(offset_days: int = 0):
-    target = datetime.utcnow().date() - timedelta(days=offset_days)
-    start = datetime.combine(target, datetime.min.time())
-    end = datetime.combine(target, datetime.max.time())
-    return start, end
+    target = local_today() - timedelta(days=offset_days)
+    return local_period_to_utc_bounds(target, target)
 
 
 def summary(db: Session, account_id: int) -> dict:
@@ -92,7 +91,7 @@ def revenue_last_7_days(db: Session, account_id: int) -> list[dict]:
             .scalar()
             or 0
         )
-        points.append({"day": start.strftime("%d/%m"), "revenue": total})
+        points.append({"day": (local_today() - timedelta(days=offset)).strftime("%d/%m"), "revenue": total})
     return points
 
 

@@ -1,17 +1,15 @@
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class AccountResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: str
     active: bool
     created_at: datetime
-
-    class Config:
-        from_attributes = True
-
 
 class AccountRegisterRequest(BaseModel):
     account_name: str = Field(min_length=2, max_length=160)

@@ -1,4 +1,5 @@
 import logging
+from contextlib import asynccontextmanager
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
@@ -16,7 +17,20 @@ from app.services.profiles import backfill_account_profiles
 settings = get_settings()
 logger = logging.getLogger("vendi.api")
 
-app = FastAPI(title=settings.app_name, version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    Base.metadata.create_all(bind=engine)
+    ensure_multitenant_schema(engine)
+    with SessionLocal() as db:
+        backfill_account_profiles(db)
+    if settings.auto_seed:
+        with SessionLocal() as db:
+            seed_database(db)
+    yield
+
+
+app = FastAPI(title=settings.app_name, version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -42,17 +56,6 @@ async def security_and_correlation_headers(request: Request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     return response
-
-
-@app.on_event("startup")
-def startup():
-    Base.metadata.create_all(bind=engine)
-    ensure_multitenant_schema(engine)
-    with SessionLocal() as db:
-        backfill_account_profiles(db)
-    if settings.auto_seed:
-        with SessionLocal() as db:
-            seed_database(db)
 
 
 @app.get("/health")

@@ -60,22 +60,54 @@ function send(method, params = {}) {
 await send("Page.enable");
 await send("Runtime.enable");
 await send("Runtime.evaluate", { expression: `localStorage.setItem("vendifacil:token", ${JSON.stringify(token)}); localStorage.setItem("vendifacil:offline-user", ${JSON.stringify(JSON.stringify(user))});` });
-await send("Page.reload", { ignoreCache: true });
-await sleep(1500);
-const authenticated = await send("Runtime.evaluate", { expression: "location.pathname !== '/login'", returnByValue: true });
-if (!authenticated.result.value) {
-  await send("Runtime.evaluate", { expression: "document.querySelector('form').requestSubmit()" });
-  await sleep(2200);
+await send("Page.navigate", { url: `${appUrl}/` });
+let authenticated = false;
+for (let attempt = 0; attempt < 40; attempt += 1) {
+  await sleep(250);
+  const state = await send("Runtime.evaluate", { expression: "({ path: location.pathname, ready: document.readyState, authenticated: Boolean(document.querySelector('aside')) })", returnByValue: true });
+  if (state.result.value.path !== "/login" && state.result.value.ready === "complete" && state.result.value.authenticated) {
+    authenticated = true;
+    break;
+  }
 }
-const authenticationCheck = await send("Runtime.evaluate", { expression: "location.pathname", returnByValue: true });
-if (authenticationCheck.result.value === "/login") throw new Error("A interface não concluiu o login para as capturas.");
+if (!authenticated) {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const formReady = await send("Runtime.evaluate", { expression: "Boolean(document.querySelector('form input[type=email]'))", returnByValue: true });
+    if (formReady.result.value) break;
+    await sleep(250);
+  }
+  await send("Runtime.evaluate", { expression: "document.querySelector('input[type=email]').focus()" });
+  await send("Input.insertText", { text: email });
+  await send("Runtime.evaluate", { expression: "document.querySelector('input[type=password]').focus()" });
+  await send("Input.insertText", { text: password });
+  await sleep(250);
+  await send("Runtime.evaluate", { expression: "document.querySelector('form').requestSubmit()" });
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    await sleep(250);
+    const state = await send("Runtime.evaluate", { expression: "({ path: location.pathname, ready: document.readyState, authenticated: Boolean(document.querySelector('aside')) })", returnByValue: true });
+    if (state.result.value.path !== "/login" && state.result.value.ready === "complete" && state.result.value.authenticated) {
+      authenticated = true;
+      break;
+    }
+  }
+}
+if (!authenticated) {
+  const diagnostic = await send("Runtime.evaluate", { expression: "({ path: location.pathname, message: document.body.innerText.slice(-300), hasToken: Boolean(localStorage.getItem('vendifacil:token')), hasCachedUser: Boolean(localStorage.getItem('vendifacil:offline-user')) })", returnByValue: true });
+  throw new Error(`A interface não concluiu o login para as capturas: ${JSON.stringify(diagnostic.result.value)}`);
+}
 
 async function navigate(route) {
   await send("Page.navigate", { url: `${appUrl}${route}` });
-  await sleep(1800);
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    await sleep(250);
+    const state = await send("Runtime.evaluate", { expression: "({ path: location.pathname, authenticated: Boolean(document.querySelector('aside')) })", returnByValue: true });
+    if (state.result.value.path === route && state.result.value.authenticated) return;
+  }
+  throw new Error(`A rota ${route} não carregou em uma sessão autenticada.`);
 }
 async function capture(name) {
   const page = await send("Runtime.evaluate", { expression: "({ url: location.href, heading: document.querySelector('h1')?.textContent })", returnByValue: true });
+  if (new URL(page.result.value.url).pathname === "/login") throw new Error(`Captura ${name} bloqueada: sessão não autenticada.`);
   console.log(`Capturando ${page.result.value.url}: ${page.result.value.heading ?? "sem título"}`);
   const result = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false, fromSurface: true });
   await writeFile(path.join(output, name), Buffer.from(result.data, "base64"));
@@ -99,5 +131,13 @@ if (product) {
 await capture("checkout-modal.png");
 await send("Browser.close");
 socket.close();
-await Promise.race([new Promise(resolve => browser.once("exit", resolve)), sleep(5000)]);
-await rm(profile, { recursive: true, force: true });
+for (let attempt = 0; attempt < 40 && browser.exitCode === null; attempt += 1) await sleep(250);
+if (browser.exitCode === null) {
+  if (process.platform === "win32") {
+    await new Promise(resolve => spawn("taskkill", ["/PID", String(browser.pid), "/T", "/F"], { stdio: "ignore" }).once("exit", resolve));
+  } else {
+    browser.kill("SIGKILL");
+  }
+  await sleep(1000);
+}
+await rm(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 250 });

@@ -57,7 +57,7 @@ Resultado: `19 passed`.
 
 ## Pendências
 
-Nenhuma pendência bloqueante na Fase 1. As advertências de depreciação do Pydantic e do evento de startup podem ser tratadas em manutenção futura sem alterar o comportamento.
+Nenhuma pendência bloqueante na Fase 1. As advertências de depreciação do Pydantic e do evento de startup foram removidas na Fase 8.
 
 ## Próxima fase
 

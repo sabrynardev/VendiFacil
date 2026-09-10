@@ -4,6 +4,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.core.datetime import local_today
 from app.models.cash_register import CashMovementType
 from app.models.customer import Customer, CustomerDebt, CustomerPayment, CustomerPaymentAllocation, DebtStatus
 from app.models.sale import PaymentMethod, Sale, SaleStatus
@@ -57,4 +58,4 @@ def customer_sales_summary(db: Session, customer: Customer) -> tuple[Decimal, fl
 
 
 def debt_is_overdue(debt: CustomerDebt) -> bool:
-    return debt.due_date is not None and debt.due_date < date.today() and money(debt.balance) > 0 and debt.status != DebtStatus.REVERSED
+    return debt.due_date is not None and debt.due_date < local_today() and money(debt.balance) > 0 and debt.status != DebtStatus.REVERSED

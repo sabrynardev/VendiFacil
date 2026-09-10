@@ -2,7 +2,12 @@ import { useState } from "react";
 
 export type PeriodKey = "today" | "yesterday" | "7d" | "30d" | "month" | "previous_month" | "year" | "custom";
 
-const toIso = (value: Date) => value.toISOString().slice(0, 10);
+const toIso = (value: Date) => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 export function periodDates(period: PeriodKey): [string, string] {
   const now = new Date(); const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());

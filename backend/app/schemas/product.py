@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator, model_validator
 
 from app.core.products import ProductUnit, calculate_margin
 
@@ -49,6 +49,8 @@ class ProductUpdate(ProductBase):
 
 
 class ProductResponse(ProductBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     created_at: datetime
     updated_at: datetime
@@ -75,6 +77,3 @@ class ProductResponse(ProductBase):
         if self.stock_quantity <= self.minimum_stock:
             return "BAIXO"
         return "NORMAL"
-
-    class Config:
-        from_attributes = True

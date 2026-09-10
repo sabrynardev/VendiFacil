@@ -13,7 +13,7 @@ Pequenos comércios precisam registrar vendas com rapidez, acompanhar estoque, i
 O projeto entrega:
 
 - autenticação com perfis
-- operação de caixa com carrinho e pagamento simulado
+- operação de caixa com carrinho e registro operacional de pagamentos
 - atualização automática de estoque
 - registro de movimentação
 - dashboard com indicadores e gráficos

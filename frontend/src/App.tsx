@@ -101,7 +101,7 @@ export default function App() {
               <Route path="users" element={<PermissionRoute permission="users.manage"><UsersPage /></PermissionRoute>} />
               <Route path="audit" element={<PermissionRoute permission="audit.view"><AuditPage /></PermissionRoute>} />
               <Route path="settings" element={<PermissionRoute permission="settings.view"><SettingsPage /></PermissionRoute>} />
-              <Route path="synchronization" element={<SynchronizationPage />} />
+              <Route path="synchronization" element={<PermissionRoute permission="cashier.operate"><SynchronizationPage /></PermissionRoute>} />
             </Route>
           </Routes>
             </Suspense>

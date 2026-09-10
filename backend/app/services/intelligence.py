@@ -9,6 +9,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.config import get_settings
+from app.core.datetime import local_today
 from app.core.permissions import PermissionCode
 from app.models.intelligence import AssistantQueryLog
 from app.models.purchase import ProductSupplier
@@ -187,7 +188,7 @@ def _normalize(value: str) -> str:
 
 def interpret_period(question: str, start: date | None = None, end: date | None = None) -> tuple[date, date, str]:
     text = _normalize(question)
-    today = date.today()
+    today = local_today()
     if "ontem" in text:
         day = today - timedelta(days=1); return day, day, "ontem"
     if "hoje" in text:

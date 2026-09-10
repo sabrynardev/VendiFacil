@@ -6,6 +6,7 @@ from datetime import date, datetime, time, timedelta
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
+from app.core.datetime import local_period_to_utc_bounds, local_today, utc_to_local
 from app.models.category import Category
 from app.models.customer import Customer, CustomerDebt, CustomerPayment, DebtStatus
 from app.models.financial import FinancialCategory, Payable, PayablePayment
@@ -26,7 +27,7 @@ def bounds(start: date, end: date) -> tuple[datetime, datetime]:
         raise AnalyticsValidationError("A data final deve ser igual ou posterior à data inicial.")
     if (end - start).days > 730:
         raise AnalyticsValidationError("O período máximo para análise é de 730 dias.")
-    return datetime.combine(start, time.min), datetime.combine(end, time.max)
+    return local_period_to_utc_bounds(start, end)
 
 
 def previous_period(start: date, end: date) -> tuple[date, date]:
@@ -134,10 +135,11 @@ def sales_analytics(db: Session, account_id: int, start: date, end: date) -> dic
     timeline_map = defaultdict(lambda: {"revenue": 0.0, "sales_count": 0})
     hourly = defaultdict(lambda: {"revenue": 0.0, "sales_count": 0})
     for sale in sales:
-        day = sale.created_at.date().isoformat()
+        local_created_at = utc_to_local(sale.created_at)
+        day = local_created_at.date().isoformat()
         timeline_map[day]["revenue"] += float(sale.total)
         timeline_map[day]["sales_count"] += 1
-        hour = sale.created_at.hour
+        hour = local_created_at.hour
         hourly[hour]["revenue"] += float(sale.total)
         hourly[hour]["sales_count"] += 1
     timeline = []
@@ -156,7 +158,7 @@ def sales_analytics(db: Session, account_id: int, start: date, end: date) -> dic
 def credit_analytics(db: Session, account_id: int, start: date, end: date) -> dict:
     start_at, end_at = bounds(start, end)
     debts = db.query(CustomerDebt).options(joinedload(CustomerDebt.customer)).filter(CustomerDebt.account_id == account_id, CustomerDebt.status.in_([DebtStatus.OPEN, DebtStatus.PARTIAL])).all()
-    today = date.today()
+    today = local_today()
     buckets = {"NAO_VENCIDO": 0.0, "1_7_DIAS": 0.0, "8_30_DIAS": 0.0, "31_60_DIAS": 0.0, "ACIMA_60_DIAS": 0.0}
     customers = defaultdict(float)
     age_weight = 0.0
@@ -166,7 +168,7 @@ def credit_analytics(db: Session, account_id: int, start: date, end: date) -> di
         balance = float(debt.balance)
         total += balance
         customers[(debt.customer_id, debt.customer.name)] += balance
-        age_weight += (today - debt.created_at.date()).days * balance
+        age_weight += (today - utc_to_local(debt.created_at).date()).days * balance
         overdue_days = (today - debt.due_date).days if debt.due_date and debt.due_date < today else 0
         if overdue_days <= 0: buckets["NAO_VENCIDO"] += balance
         elif overdue_days <= 7: buckets["1_7_DIAS"] += balance
@@ -200,7 +202,7 @@ def loss_and_expiry_analytics(db: Session, account_id: int, start: date, end: da
         by_reason[reason]["quantity"] += float(loss.quantity); by_reason[reason]["value"] += value
         products[loss.product.name]["quantity"] += float(loss.quantity); products[loss.product.name]["value"] += value
         total_value += value; total_quantity += float(loss.quantity)
-    today = date.today()
+    today = local_today()
     lots = db.query(ProductLot).options(joinedload(ProductLot.product)).filter(ProductLot.account_id == account_id, ProductLot.current_quantity > 0, ProductLot.expiration_date.is_not(None)).all()
     expiry = {"VENCIDO": {"quantity": 0.0, "value": 0.0}, "ATE_3_DIAS": {"quantity": 0.0, "value": 0.0}, "ATE_7_DIAS": {"quantity": 0.0, "value": 0.0}, "ATE_30_DIAS": {"quantity": 0.0, "value": 0.0}}
     for lot in lots:
